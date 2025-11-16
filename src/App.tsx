@@ -16,6 +16,7 @@ import { UserManagementPage } from './features/admin/UserManagementPage';
 import { CourseManagementPage } from './features/admin/CourseManagementPage';
 import { SectionManagementPage } from './features/admin/SectionManagementPage';
 import { SystemSettingsPage } from './features/admin/SystemSettingsPage';
+import { AccountSettingsPage } from './features/settings/AccountSettingsPage';
 import { MaintenanceProvider } from './contexts/MaintenanceContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -166,10 +167,7 @@ function App() {
             path="/account"
             element={
               <ProtectedRoute>
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
-                  <p className="text-gray-600 mt-2">Manage your account</p>
-                </div>
+                <AccountSettingsPage />
               </ProtectedRoute>
             }
           />
