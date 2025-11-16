@@ -4,7 +4,6 @@
 *(All baseline items completed)*
 
 ## Platform & Architecture
-- Add health checks + configuration diagnostics (datasource ping, config validation).
 
 ## Authentication & Security
 - Surface student/instructor change-password UI leveraging `updatePassword`.

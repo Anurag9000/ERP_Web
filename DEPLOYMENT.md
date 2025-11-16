@@ -434,6 +434,11 @@ Monitor these metrics:
 - Implement graceful error handling
 - Use database transactions for critical operations
 - Regular backup testing (restore to staging)
+- CI/CD health check step:
+  ```bash
+  npm run health
+  ```
+  Fails the pipeline if Supabase credentials are misconfigured or the database is unreachable.
 
 ### User Experience
 - Monitor real user metrics

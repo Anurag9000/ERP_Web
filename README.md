@@ -395,6 +395,14 @@ npm run build
   ```
 - See `docs/BACKUP_RESTORE.md` for detailed prerequisites, automation tips, and safety considerations.
 
+### Health Checks
+
+- Ensure connectivity/configuration before deployments:
+  ```bash
+  npm run health
+  ```
+- The script verifies Supabase reachability and key config tables (requires `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`).
+
 ## Monitoring and Maintenance
 
 ### Logs
