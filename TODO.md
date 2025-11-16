@@ -1,7 +1,6 @@
 # Outstanding Features & Tasks
 
 ## Baseline Specification
-- Build full registration & drop workflow (enroll, drop, waitlist, validations) instead of placeholder routes/buttons.
 - Deliver instructor grade entry/weighting/stats UI plus CSV import/export support.
 - Provide transcript generation/export UI and student grade views.
 - Create admin consoles for user/course/section management, including assigning instructors and maintenance toggles.

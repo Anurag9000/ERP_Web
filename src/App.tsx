@@ -7,6 +7,7 @@ import { CatalogPage } from './features/student/CatalogPage';
 import { NotificationsPage } from './features/notifications/NotificationsPage';
 import { InstructorDashboardPage } from './features/instructor/InstructorDashboardPage';
 import { AdminDashboardPage } from './features/admin/AdminDashboardPage';
+import { RegistrationPage } from './features/student/RegistrationPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -74,10 +75,7 @@ function App() {
             path="/registration"
             element={
               <ProtectedRoute>
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold text-gray-900">Registration</h1>
-                  <p className="text-gray-600 mt-2">Manage your course registrations</p>
-                </div>
+                <RegistrationPage />
               </ProtectedRoute>
             }
           />
