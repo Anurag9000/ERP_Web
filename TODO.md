@@ -1,7 +1,6 @@
 # Outstanding Features & Tasks
 
 ## Baseline Specification
-- Implement role-specific dashboards and navigation (Student/Instructor/Admin) beyond the current student-only views.
 - Build full registration & drop workflow (enroll, drop, waitlist, validations) instead of placeholder routes/buttons.
 - Deliver instructor grade entry/weighting/stats UI plus CSV import/export support.
 - Provide transcript generation/export UI and student grade views.

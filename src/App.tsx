@@ -5,6 +5,8 @@ import { LoginPage } from './features/auth/LoginPage';
 import { StudentDashboardPage } from './features/student/DashboardPage';
 import { CatalogPage } from './features/student/CatalogPage';
 import { NotificationsPage } from './features/notifications/NotificationsPage';
+import { InstructorDashboardPage } from './features/instructor/InstructorDashboardPage';
+import { AdminDashboardPage } from './features/admin/AdminDashboardPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -24,6 +26,28 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <MainLayout>{children}</MainLayout>;
 }
 
+function DashboardRouter() {
+  const { profile } = useAuth();
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-600">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (profile.role === 'INSTRUCTOR') {
+    return <InstructorDashboardPage />;
+  }
+
+  if (profile.role === 'ADMIN' || profile.role === 'STAFF') {
+    return <AdminDashboardPage />;
+  }
+
+  return <StudentDashboardPage />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -34,7 +58,7 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <StudentDashboardPage />
+                <DashboardRouter />
               </ProtectedRoute>
             }
           />
