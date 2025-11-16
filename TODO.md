@@ -2,7 +2,6 @@
 
 ## Baseline Specification
 - Enforce maintenance mode across all write paths, not just the banner.
-- Ship optional backup/restore tooling documented in spec.
 
 ## Platform & Architecture
 - Document dual database split (ERDs, DDL, rollback plan, seed loaders) if applicable.

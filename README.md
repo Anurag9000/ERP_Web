@@ -381,6 +381,20 @@ npm run build
 # Upload dist/ folder to your hosting provider
 ```
 
+### Backup & Restore
+
+- Requires PostgreSQL client tools (`pg_dump`, `psql`) and the Supabase `DATABASE_URL`.
+- Create a backup:
+  ```bash
+  export DATABASE_URL="postgresql://postgres:password@db.your-project.supabase.co:5432/postgres?sslmode=require"
+  ./scripts/db-backup.sh
+  ```
+- Restore from a backup:
+  ```bash
+  ./scripts/db-restore.sh backups/university-erp-20251116-120000.sql
+  ```
+- See `docs/BACKUP_RESTORE.md` for detailed prerequisites, automation tips, and safety considerations.
+
 ## Monitoring and Maintenance
 
 ### Logs

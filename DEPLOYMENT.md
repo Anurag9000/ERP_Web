@@ -334,11 +334,10 @@ Target scores:
 
 **Manual Backup:**
 ```bash
-# Via Supabase CLI
-supabase db dump -f backup.sql
-
-# Restore
-supabase db reset --db-url "postgresql://..."
+# Via PostgreSQL client tools
+export DATABASE_URL="postgresql://postgres:password@db.your-project.supabase.co:5432/postgres?sslmode=require"
+./scripts/db-backup.sh             # creates backups/university-erp-<timestamp>.sql
+./scripts/db-restore.sh backups/university-erp-<timestamp>.sql
 ```
 
 **Code Backups:**
