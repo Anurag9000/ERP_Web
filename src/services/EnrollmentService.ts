@@ -19,6 +19,7 @@ export interface RegistrationSection {
   status: string;
   term_id: string;
   courses: {
+    id: string;
     code: string;
     name: string;
     description?: string;
@@ -63,6 +64,28 @@ export interface RegistrationData {
 
 type SectionSchedule = Pick<RegistrationSection, 'schedule_days' | 'start_time' | 'end_time' | 'rooms'>;
 
+interface CourseMeta {
+  id: string;
+  code: string;
+  name: string;
+  credits: number | null;
+  level: string | null;
+  department_id: string | null;
+  department_name?: string | null;
+}
+
+interface CourseRow {
+  id: string;
+  code: string;
+  name: string;
+  credits: number | null;
+  level: string | null;
+  department_id: string | null;
+  departments?: {
+    name: string | null;
+  } | null;
+}
+
 export class EnrollmentService {
   constructor(private readonly audit: AuditService) {}
   async fetchRegistrationData(studentId: string): Promise<RegistrationData> {
@@ -87,6 +110,7 @@ export class EnrollmentService {
               status,
               term_id,
               courses (
+                id,
                 code,
                 name,
                 description,
@@ -121,7 +145,7 @@ export class EnrollmentService {
               end_time,
               status,
               term_id,
-              courses(code, name, credits, level, departments(code, name, color, id)),
+              courses(id, code, name, credits, level, departments(code, name, color, id)),
               rooms(code, name),
               terms(id, name, code, drop_deadline)
             )
@@ -135,6 +159,7 @@ export class EnrollmentService {
           `
             *,
             courses(
+              id,
               code,
               name,
               description,
@@ -165,9 +190,18 @@ export class EnrollmentService {
   }
 
   async enrollInSection(studentId: string, section: RegistrationSection, currentSections: RegistrationSection[]) {
-    if (this.hasConflict(section, currentSections)) {
+    const scheduleSections = currentSections.map((current) => this.toSchedule(current));
+    if (this.hasConflict(this.toSchedule(section), scheduleSections)) {
       throw new Error('Schedule or room conflict detected with an existing course.');
     }
+
+    const completedCourseIds = await this.getCourseIdsByStatus(studentId, 'COMPLETED');
+    const activeCourseIds = await this.getCourseIdsByStatus(studentId, 'ACTIVE');
+    const currentCourseIds = new Set(currentSections.map((current) => current.courses.id).filter(Boolean));
+    const activePlusCurrent = new Set([...activeCourseIds, ...currentCourseIds]);
+
+    await this.ensureCourseRequirements(studentId, section.courses.id, activePlusCurrent, completedCourseIds);
+
     const hasSeat = section.status === 'OPEN' && section.enrolled_count < section.capacity;
 
     if (hasSeat) {
@@ -244,12 +278,114 @@ export class EnrollmentService {
     });
   }
 
+  private async ensureCourseRequirements(
+    studentId: string,
+    courseId: string,
+    activePlusCurrent: Set<string>,
+    completedCourseIds: Set<string>
+  ) {
+    const [prereqResp, coreqResp, antireqResp, courseResp, profileResp] = await Promise.all([
+      supabase.from('course_prerequisites').select('prerequisite_id').eq('course_id', courseId),
+      supabase.from('course_corequisites').select('corequisite_id').eq('course_id', courseId),
+      supabase.from('course_antirequisites').select('antirequisite_id').eq('course_id', courseId),
+      supabase
+        .from('courses')
+        .select(
+          `
+            id,
+            code,
+            name,
+            level,
+            credits,
+            department_id,
+            departments(name)
+          `
+        )
+        .eq('id', courseId)
+        .maybeSingle(),
+      supabase.from('user_profiles').select('id, department_id').eq('id', studentId).maybeSingle(),
+    ]);
+
+    if (prereqResp.error) throw prereqResp.error;
+    if (coreqResp.error) throw coreqResp.error;
+    if (antireqResp.error) throw antireqResp.error;
+    if (courseResp.error) throw courseResp.error;
+    if (profileResp.error) throw profileResp.error;
+
+    const prereqIds =
+      prereqResp.data
+        ?.map((row: { prerequisite_id: string | null }) => row.prerequisite_id)
+        .filter((id): id is string => Boolean(id)) || [];
+
+    const coreqIds =
+      coreqResp.data
+        ?.map((row: { corequisite_id: string | null }) => row.corequisite_id)
+        .filter((id): id is string => Boolean(id)) || [];
+
+    const antireqIds =
+      antireqResp.data
+        ?.map((row: { antirequisite_id: string | null }) => row.antirequisite_id)
+        .filter((id): id is string => Boolean(id)) || [];
+
+    const lookupIds = Array.from(new Set([...prereqIds, ...coreqIds, ...antireqIds]));
+    const courseLookup = await this.fetchCourseCatalog(lookupIds);
+
+    const missingPrereqs = prereqIds.filter((id) => !completedCourseIds.has(id));
+    if (missingPrereqs.length) {
+      throw new Error(
+        `Missing prerequisites: ${this.formatCourseList(missingPrereqs, courseLookup)}. Complete these before enrolling.`
+      );
+    }
+
+    const missingCoreqs = coreqIds.filter((id) => !completedCourseIds.has(id) && !activePlusCurrent.has(id));
+    if (missingCoreqs.length) {
+      throw new Error(
+        `Co-requisites required: ${this.formatCourseList(
+          missingCoreqs,
+          courseLookup
+        )}. Add them to your schedule or request an override.`
+      );
+    }
+
+    const blockedAntireqs = antireqIds.filter((id) => completedCourseIds.has(id) || activePlusCurrent.has(id));
+    if (blockedAntireqs.length) {
+      throw new Error(
+        `You cannot enroll because of anti-requisites: ${this.formatCourseList(
+          blockedAntireqs,
+          courseLookup
+        )}. Choose a different course.`
+      );
+    }
+
+    const courseInfo = courseResp.data;
+    const studentProfile = profileResp.data;
+    if (courseInfo && studentProfile?.department_id && courseInfo.department_id) {
+      const parsedLevel = this.parseCourseLevel(courseInfo.level);
+      const departmentMismatch = studentProfile.department_id !== courseInfo.department_id;
+      if (departmentMismatch && parsedLevel >= 200) {
+        const departmentName = courseInfo.departments?.name ?? 'department';
+        throw new Error(
+          `Department approval required for ${courseInfo.code}. Contact the ${departmentName} office before registering.`
+        );
+      }
+      if (parsedLevel >= 400) {
+        const completedCredits = await this.sumCourseCredits(completedCourseIds);
+        if (completedCredits < 24) {
+          throw new Error(
+            `Advisor approval required for ${courseInfo.code}. You currently have ${completedCredits} completed credits.`
+          );
+        }
+      }
+    }
+  }
+
   private async promoteFromWaitlist(sectionId: string) {
     const { data: section } = await supabase
       .from('sections')
       .select(
         `
           id,
+          course_id,
           term_id,
           enrolled_count,
           waitlist_count,
@@ -279,6 +415,22 @@ export class EnrollmentService {
     for (const candidate of candidates) {
       const current = await this.fetchStudentSchedules(candidate.student_id);
       if (this.hasConflict(section, current)) {
+        continue;
+      }
+
+      try {
+        const [activeCourseIds, completedCourseIds] = await Promise.all([
+          this.getCourseIdsByStatus(candidate.student_id, 'ACTIVE'),
+          this.getCourseIdsByStatus(candidate.student_id, 'COMPLETED'),
+        ]);
+        await this.ensureCourseRequirements(
+          candidate.student_id,
+          section.course_id,
+          activeCourseIds,
+          completedCourseIds
+        );
+      } catch (validationError) {
+        console.warn('Skipping waitlist promotion due to unmet requirements', validationError);
         continue;
       }
 
@@ -353,5 +505,94 @@ export class EnrollmentService {
   private timeToMinutes(time: string) {
     const [h, m] = time.split(':').map(Number);
     return h * 60 + m;
+  }
+
+  private async getCourseIdsByStatus(studentId: string, status: string): Promise<Set<string>> {
+    const { data, error } = await supabase
+      .from('enrollments')
+      .select(
+        `
+          sections(
+            course_id
+          )
+        `
+      )
+      .eq('student_id', studentId)
+      .eq('status', status);
+    if (error) throw error;
+    const ids = new Set<string>();
+    data?.forEach((row: { sections: { course_id: string | null } | null }) => {
+      const id = row.sections?.course_id;
+      if (id) {
+        ids.add(id);
+      }
+    });
+    return ids;
+  }
+
+  private async fetchCourseCatalog(courseIds: string[]): Promise<Record<string, CourseMeta>> {
+    if (!courseIds.length) {
+      return {} as Record<string, CourseMeta>;
+    }
+    const { data, error } = await supabase
+      .from('courses')
+      .select(
+        `
+          id,
+          code,
+          name,
+          credits,
+          level,
+          department_id,
+          departments(name)
+        `
+      )
+      .in('id', courseIds);
+    if (error) throw error;
+    const map: Record<string, CourseMeta> = {};
+    (data as CourseRow[] | null)?.forEach((course) => {
+      map[course.id] = {
+        id: course.id,
+        code: course.code,
+        name: course.name,
+        credits: course.credits,
+        level: course.level,
+        department_id: course.department_id,
+        department_name: course.departments?.name ?? null,
+      };
+    });
+    return map;
+  }
+
+  private formatCourseList(ids: string[], lookup: Record<string, CourseMeta>): string {
+    return ids
+      .map((id) => {
+        const course = lookup[id];
+        if (!course) return 'Unknown course';
+        return course.name ? `${course.code} (${course.name})` : course.code;
+      })
+      .join(', ');
+  }
+
+  private parseCourseLevel(level?: string | null): number {
+    if (!level) return 0;
+    if (level.toUpperCase() === 'GRAD') {
+      return 500;
+    }
+    const parsed = parseInt(level, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  private async sumCourseCredits(courseIds: Set<string>): Promise<number> {
+    if (!courseIds.size) {
+      return 0;
+    }
+    const { data, error } = await supabase
+      .from('courses')
+      .select('id, credits')
+      .in('id', Array.from(courseIds));
+    if (error) throw error;
+    const rows = (data as { credits: number | null }[] | null) ?? [];
+    return rows.reduce((total, course) => total + (course.credits ?? 0), 0);
   }
 }

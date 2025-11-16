@@ -1,14 +1,5 @@
-# Outstanding Features & Tasks
-
-## Baseline Specification
-*(All baseline items completed)*
-
-## Platform & Architecture
-
-## Student Experience
-- Implement complete registration enhancements: ✅ clash detection (time & room), ✅ automated waitlist promotion queue (advisor approvals pending), ✅ deadline enforcement, ☐ co-/anti-requisite handling, ☐ departmental/advisor approvals.
 - Build timetable grid visualization and improved printable/PDF output.
-- Create GPA/standing analytics (trend graphs, probation alerts). ✅ trend & standing indicators delivered.
+- Create GPA/standing analytics (trend graphs, probation alerts). ? trend & standing indicators delivered.
 - Add transcript watermarking, certificate downloads, registrar messaging flow.
 - Deliver fee schedule configuration UI, installment visualization, reminder messaging.
 - Upgrade notification inbox with maintenance/system broadcast filters, digests, SMS/email stubs, admin history.
@@ -110,3 +101,4 @@
 - Theme & accessibility settings (high contrast, font scaling, color-blind palettes).
 - Preference-based notifications (category controls, digest frequency).
 - Personal learning goals dashboard for attendance/grade goals with visuals.
+
