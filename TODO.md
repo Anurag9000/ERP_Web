@@ -6,7 +6,7 @@
 ## Platform & Architecture
 
 ## Student Experience
-- Implement complete registration enhancements: ✅ clash detection (time & room), ☐ automated waitlist promotion with advisor approvals, ✅ deadline enforcement, ☐ co-/anti-requisite handling, ☐ departmental/advisor approvals.
+- Implement complete registration enhancements: ✅ clash detection (time & room), ✅ automated waitlist promotion queue (advisor approvals pending), ✅ deadline enforcement, ☐ co-/anti-requisite handling, ☐ departmental/advisor approvals.
 - Build timetable grid visualization and improved printable/PDF output.
 - Create GPA/standing analytics (trend graphs, probation alerts).
 - Add transcript watermarking, certificate downloads, registrar messaging flow.

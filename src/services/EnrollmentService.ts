@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { AuditService } from './AuditService';
 
 export interface RegistrationDepartment {
   id: string;
@@ -60,7 +61,7 @@ export interface RegistrationData {
   departments: RegistrationDepartment[];
 }
 
-import { AuditService } from './AuditService';
+type SectionSchedule = Pick<RegistrationSection, 'schedule_days' | 'start_time' | 'end_time' | 'rooms'>;
 
 export class EnrollmentService {
   constructor(private readonly audit: AuditService) {}
@@ -243,7 +244,97 @@ export class EnrollmentService {
     });
   }
 
-  private hasConflict(section: RegistrationSection, currentSections: RegistrationSection[]) {
+  private async promoteFromWaitlist(sectionId: string) {
+    const { data: section } = await supabase
+      .from('sections')
+      .select(
+        `
+          id,
+          term_id,
+          enrolled_count,
+          waitlist_count,
+          schedule_days,
+          start_time,
+          end_time,
+          rooms(code, name)
+        `
+      )
+      .eq('id', sectionId)
+      .maybeSingle();
+
+    if (!section) return;
+
+    const { data: candidates } = await supabase
+      .from('waitlists')
+      .select('id, student_id')
+      .eq('section_id', sectionId)
+      .eq('status', 'WAITING')
+      .order('position')
+      .limit(5);
+
+    if (!candidates?.length) {
+      return;
+    }
+
+    for (const candidate of candidates) {
+      const current = await this.fetchStudentSchedules(candidate.student_id);
+      if (this.hasConflict(section, current)) {
+        continue;
+      }
+
+      const { error } = await supabase.from('enrollments').insert({
+        student_id: candidate.student_id,
+        section_id: sectionId,
+        term_id: section.term_id,
+        status: 'ACTIVE',
+      });
+      if (error) {
+        console.error('Failed to promote waitlist candidate', error);
+        continue;
+      }
+
+      await supabase
+        .from('waitlists')
+        .update({ status: 'PROMOTED', promoted_at: new Date().toISOString() })
+        .eq('id', candidate.id);
+
+      await supabase
+        .from('sections')
+        .update({
+          enrolled_count: section.enrolled_count + 1,
+          waitlist_count: Math.max(section.waitlist_count - 1, 0),
+        })
+        .eq('id', sectionId);
+
+      await this.audit.enrollment(candidate.student_id, sectionId, 'PROMOTED');
+      break;
+    }
+  }
+
+  private async fetchStudentSchedules(studentId: string): Promise<SectionSchedule[]> {
+    const { data } = await supabase
+      .from('enrollments')
+      .select(
+        `
+          sections(
+            schedule_days,
+            start_time,
+            end_time,
+            rooms(code, name)
+          )
+        `
+      )
+      .eq('student_id', studentId)
+      .eq('status', 'ACTIVE');
+
+    return (
+      data
+        ?.map((row: { sections: SectionSchedule | null }) => row.sections)
+        .filter((section): section is SectionSchedule => Boolean(section)) || []
+    );
+  }
+
+  private hasConflict(section: SectionSchedule, currentSections: SectionSchedule[]) {
     return currentSections.some((current) => {
       const overlappingDay = current.schedule_days.some((day) => section.schedule_days.includes(day));
       if (!overlappingDay) return false;
