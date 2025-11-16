@@ -6,6 +6,7 @@ import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { Download, UploadCloud, Loader2, BarChart3, ClipboardCheck } from 'lucide-react';
 import { formatDate } from '../../lib/utils';
+import { useMaintenance } from '../../contexts/MaintenanceContext';
 
 interface SectionInfo {
   id: string;
@@ -60,6 +61,7 @@ const gradeKey = (studentId: string, assessmentId: string) => `${studentId}_${as
 
 export function GradebookPage() {
   const { user } = useAuth();
+  const { canWrite } = useMaintenance();
   const [sections, setSections] = useState<SectionInfo[]>([]);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
@@ -199,6 +201,10 @@ export function GradebookPage() {
 
   async function handleSaveGrade(studentId: string, assessment: Assessment) {
     if (!user) return;
+    if (!canWrite) {
+      setMessage('Maintenance mode is active. Grade edits are temporarily disabled.');
+      return;
+    }
     const key = gradeKey(studentId, assessment.id);
     const rawValue = gradeInputs[key];
     if (!rawValue && rawValue !== '0') {
@@ -332,6 +338,11 @@ export function GradebookPage() {
 
   async function handleImportCsv(event: React.ChangeEvent<HTMLInputElement>) {
     if (!event.target.files?.length || !selectedSection) return;
+    if (!canWrite) {
+      setMessage('Maintenance mode is active. Grade imports are temporarily disabled.');
+      event.target.value = '';
+      return;
+    }
     const file = event.target.files[0];
     setImporting(true);
     setMessage(null);

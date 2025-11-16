@@ -15,6 +15,7 @@ import {
   Loader2,
   Clock,
 } from 'lucide-react';
+import { useMaintenance } from '../../contexts/MaintenanceContext';
 
 interface Department {
   id: string;
@@ -78,6 +79,7 @@ type MessageState = {
 
 export function RegistrationPage() {
   const { user } = useAuth();
+  const { canWrite } = useMaintenance();
   const [enrollments, setEnrollments] = useState<EnrollmentRow[]>([]);
   const [waitlists, setWaitlists] = useState<WaitlistRow[]>([]);
   const [sections, setSections] = useState<SectionRow[]>([]);
@@ -228,6 +230,13 @@ export function RegistrationPage() {
 
   async function handleRegister(section: SectionRow) {
     if (!user) return;
+    if (!canWrite) {
+      setMessage({
+        type: 'error',
+        text: 'Maintenance mode is active. Changes to registrations are temporarily disabled.',
+      });
+      return;
+    }
     if (enrollments.some((enrollment) => enrollment.section_id === section.id)) {
       setMessage({ type: 'error', text: 'You are already enrolled in this section.' });
       return;
@@ -289,6 +298,13 @@ export function RegistrationPage() {
 
   async function handleDrop(enrollment: EnrollmentRow) {
     if (!user) return;
+    if (!canWrite) {
+      setMessage({
+        type: 'error',
+        text: 'Maintenance mode is active. Drop actions are temporarily disabled.',
+      });
+      return;
+    }
     const deadline = enrollment.sections?.terms?.drop_deadline
       ? new Date(enrollment.sections.terms.drop_deadline)
       : null;
@@ -335,6 +351,13 @@ export function RegistrationPage() {
 
   async function handleWaitlistRemove(entry: WaitlistRow) {
     if (!user) return;
+    if (!canWrite) {
+      setMessage({
+        type: 'error',
+        text: 'Maintenance mode is active. Waitlist changes are temporarily disabled.',
+      });
+      return;
+    }
     const confirmed = window.confirm('Remove this waitlist entry?');
     if (!confirmed) return;
 
@@ -627,7 +650,7 @@ export function RegistrationPage() {
                     <Button
                       className="mt-3 md:mt-0"
                       size="sm"
-                      disabled={alreadyEnrolled || alreadyWaitlisted || actionSection === section.id}
+                      disabled={alreadyEnrolled || alreadyWaitlisted || actionSection === section.id || !canWrite}
                       onClick={() => handleRegister(section)}
                     >
                       {actionSection === section.id
@@ -636,6 +659,8 @@ export function RegistrationPage() {
                         ? 'Enrolled'
                         : alreadyWaitlisted
                         ? 'Waitlisted'
+                        : !canWrite
+                        ? 'Maintenance'
                         : seatsAvailable > 0 && section.status === 'OPEN'
                         ? 'Register'
                         : 'Join Waitlist'}
