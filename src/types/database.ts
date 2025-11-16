@@ -283,6 +283,23 @@ export type Database = {
         Insert: Omit<Database['public']['Tables']['notification_preferences']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['notification_preferences']['Insert']>;
       };
+      registrar_requests: {
+        Row: {
+          id: string;
+          student_id: string;
+          request_type: string;
+          delivery_format: string;
+          preferred_channel: string;
+          message: string | null;
+          status: string;
+          admin_notes: string | null;
+          created_at: string;
+          updated_at: string;
+          resolved_at: string | null;
+        };
+        Insert: Omit<Database['public']['Tables']['registrar_requests']['Row'], 'id' | 'created_at' | 'updated_at' | 'resolved_at'>;
+        Update: Partial<Database['public']['Tables']['registrar_requests']['Insert']>;
+      };
       system_settings: {
         Row: {
           id: string;
