@@ -6,7 +6,6 @@
 ## Platform & Architecture
 
 ## Authentication & Security
-- Add admin password reset workflow enforcing `must_change_password`.
 - Extend audit trail logging (maintenance toggles, enrollment overrides, grade edits) and build export UI.
 
 ## Data Migration & Repositories

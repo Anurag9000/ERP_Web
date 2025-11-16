@@ -403,6 +403,17 @@ npm run build
   ```
 - The script verifies Supabase reachability and key config tables (requires `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`).
 
+### Admin Password Resets
+
+- Requires `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_URL` (only admins should have access).
+- Reset a user password and force them to change it next login:
+  ```bash
+  export SUPABASE_URL=https://<project>.supabase.co
+  export SUPABASE_SERVICE_ROLE_KEY=service-role-key
+  npm run admin:reset-password -- user@example.com "TempPassword123!"
+  ```
+- The script updates the Supabase Auth password and toggles `must_change_password` in `user_profiles`.
+
 ## Monitoring and Maintenance
 
 ### Logs
