@@ -11,6 +11,10 @@ import { RegistrationPage } from './features/student/RegistrationPage';
 import { GradesPage } from './features/student/GradesPage';
 import { TranscriptPage } from './features/student/TranscriptPage';
 import { GradebookPage } from './features/instructor/GradebookPage';
+import { UserManagementPage } from './features/admin/UserManagementPage';
+import { CourseManagementPage } from './features/admin/CourseManagementPage';
+import { SectionManagementPage } from './features/admin/SectionManagementPage';
+import { SystemSettingsPage } from './features/admin/SystemSettingsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -166,6 +170,38 @@ function App() {
                   <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
                   <p className="text-gray-600 mt-2">Manage your account</p>
                 </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute>
+                <UserManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/courses"
+            element={
+              <ProtectedRoute>
+                <CourseManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/enrollments"
+            element={
+              <ProtectedRoute>
+                <SectionManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <ProtectedRoute>
+                <SystemSettingsPage />
               </ProtectedRoute>
             }
           />
