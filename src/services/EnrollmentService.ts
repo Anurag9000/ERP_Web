@@ -60,7 +60,10 @@ export interface RegistrationData {
   departments: RegistrationDepartment[];
 }
 
+import { AuditService } from './AuditService';
+
 export class EnrollmentService {
+  constructor(private readonly audit: AuditService) {}
   async fetchRegistrationData(studentId: string): Promise<RegistrationData> {
     const [enrollmentResp, waitlistResp, sectionResp, departmentResp] = await Promise.all([
       supabase
@@ -175,6 +178,7 @@ export class EnrollmentService {
         .from('sections')
         .update({ enrolled_count: section.enrolled_count + 1 })
         .eq('id', section.id);
+      await this.audit.enrollment(studentId, section.id, 'ENROLLED');
       return { status: 'ENROLLED' as const };
     }
 
@@ -196,6 +200,7 @@ export class EnrollmentService {
       .from('sections')
       .update({ waitlist_count: section.waitlist_count + 1 })
       .eq('id', section.id);
+    await this.audit.enrollment(studentId, section.id, 'WAITLISTED');
     return { status: 'WAITLISTED' as const };
   }
 
@@ -215,6 +220,7 @@ export class EnrollmentService {
         .update({ enrolled_count: Math.max(enrollment.sections.enrolled_count - 1, 0) })
         .eq('id', enrollment.section_id);
     }
+    await this.audit.enrollment(studentId, enrollment.section_id, 'DROPPED');
   }
 
   async removeFromWaitlist(studentId: string, entry: RegistrationWaitlist) {
@@ -226,5 +232,11 @@ export class EnrollmentService {
         .update({ waitlist_count: Math.max(entry.sections.waitlist_count - 1, 0) })
         .eq('id', entry.section_id);
     }
+    await this.audit.record({
+      userId: studentId,
+      action: 'WAITLIST_REMOVED',
+      entityType: 'ENROLLMENT',
+      entityId: entry.section_id,
+    });
   }
 }

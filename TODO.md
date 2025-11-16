@@ -5,9 +5,6 @@
 
 ## Platform & Architecture
 
-## Authentication & Security
-- Extend audit trail logging (maintenance toggles, enrollment overrides, grade edits) and build export UI.
-
 ## Student Experience
 - Implement complete registration enhancements: clash detection (time & room), automated waitlist promotion with advisor approvals, deadline enforcement, co-/anti-requisite handling, departmental/advisor approvals.
 - Build timetable grid visualization and improved printable/PDF output.

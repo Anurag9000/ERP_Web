@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { AuditService } from './AuditService';
 
 export interface GradebookSection {
   id: string;
@@ -48,6 +49,7 @@ export interface GradebookData {
 }
 
 export class GradebookService {
+  constructor(private readonly audit: AuditService) {}
   async listSections(instructorId: string): Promise<GradebookSection[]> {
     const { data, error } = await supabase
       .from('sections')
@@ -154,6 +156,7 @@ export class GradebookService {
       .select()
       .single();
     if (error) throw error;
+    await this.audit.gradeEdit(graderId, assessmentId, studentId, marks);
     return data;
   }
 
@@ -177,5 +180,8 @@ export class GradebookService {
 
     const { error } = await supabase.from('grades').upsert(payload, { onConflict: 'assessment_id,student_id' });
     if (error) throw error;
+    await Promise.all(
+      rows.map((entry) => this.audit.gradeEdit(instructorId, entry.assessmentId, entry.studentId, entry.marks))
+    );
   }
 }

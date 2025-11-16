@@ -6,6 +6,7 @@ import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Loader2, AlertTriangle, CalendarClock } from 'lucide-react';
 import { useMaintenance } from '../../contexts/MaintenanceContext';
+import { services } from '../../services/serviceLocator';
 
 interface MaintenanceWindow {
   id: string;
@@ -74,6 +75,9 @@ export function SystemSettingsPage() {
         .upsert({ key: 'maintenance_mode', value: next ? 'true' : 'false' });
       if (error) throw error;
       setMaintenanceEnabled(next);
+      if (profile?.id) {
+        await services.auditService.maintenanceToggle(profile.id, next);
+      }
       setMessage(`Maintenance mode ${next ? 'enabled' : 'disabled'}.`);
     } catch (error) {
       console.error('Error updating maintenance:', error);
@@ -103,8 +107,11 @@ export function SystemSettingsPage() {
         is_active: true,
         created_by: profile?.id || '',
       };
-      const { error } = await supabase.from('maintenance_windows').insert(payload);
+      const { data, error } = await supabase.from('maintenance_windows').insert(payload).select('id').single();
       if (error) throw error;
+      if (profile?.id && data?.id) {
+        await services.auditService.maintenanceWindow(profile.id, data.id);
+      }
       setForm({ title: '', start: '', end: '' });
       await loadSettings();
       setMessage('Maintenance window scheduled.');
