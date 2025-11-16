@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -16,61 +15,13 @@ import {
   Clock,
 } from 'lucide-react';
 import { useMaintenance } from '../../contexts/MaintenanceContext';
-
-interface Department {
-  id: string;
-  code: string;
-  name: string;
-}
-
-interface SectionRow {
-  id: string;
-  section_number: string;
-  capacity: number;
-  enrolled_count: number;
-  waitlist_count: number;
-  schedule_days: string[];
-  start_time: string;
-  end_time: string;
-  status: string;
-  term_id: string;
-  courses: {
-    code: string;
-    name: string;
-    credits: number;
-    departments: {
-      code: string;
-      name: string;
-      color: string;
-    };
-  };
-  rooms: {
-    code: string;
-    name: string;
-  } | null;
-  terms: {
-    id: string;
-    name: string;
-    code: string;
-    drop_deadline: string | null;
-  };
-}
-
-interface EnrollmentRow {
-  id: string;
-  status: string;
-  section_id: string;
-  enrolled_at: string;
-  sections: SectionRow;
-}
-
-interface WaitlistRow {
-  id: string;
-  status: string;
-  position: number;
-  section_id: string;
-  sections: SectionRow;
-}
+import { services } from '../../services/serviceLocator';
+import type {
+  RegistrationDepartment,
+  RegistrationEnrollment,
+  RegistrationSection,
+  RegistrationWaitlist,
+} from '../../services/EnrollmentService';
 
 type MessageState = {
   type: 'success' | 'error';
@@ -80,10 +31,10 @@ type MessageState = {
 export function RegistrationPage() {
   const { user } = useAuth();
   const { canWrite } = useMaintenance();
-  const [enrollments, setEnrollments] = useState<EnrollmentRow[]>([]);
-  const [waitlists, setWaitlists] = useState<WaitlistRow[]>([]);
-  const [sections, setSections] = useState<SectionRow[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [enrollments, setEnrollments] = useState<RegistrationEnrollment[]>([]);
+  const [waitlists, setWaitlists] = useState<RegistrationWaitlist[]>([]);
+  const [sections, setSections] = useState<RegistrationSection[]>([]);
+  const [departments, setDepartments] = useState<RegistrationDepartment[]>([]);
   const [search, setSearch] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [showOpenOnly, setShowOpenOnly] = useState(false);
@@ -102,96 +53,11 @@ export function RegistrationPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const [enrollmentResp, waitlistResp, sectionResp, departmentResp] = await Promise.all([
-        supabase
-          .from('enrollments')
-          .select(
-            `
-              id,
-              status,
-              section_id,
-              enrolled_at,
-              sections (
-                id,
-                section_number,
-                capacity,
-                enrolled_count,
-                waitlist_count,
-                schedule_days,
-                start_time,
-                end_time,
-                status,
-                term_id,
-                courses (
-                  code,
-                  name,
-                  credits,
-                  departments (code, name, color)
-                ),
-                rooms (code, name),
-                terms (id, name, code, drop_deadline)
-              )
-            `
-          )
-          .eq('student_id', user!.id)
-          .neq('status', 'DROPPED')
-          .order('enrolled_at', { ascending: false }),
-        supabase
-          .from('waitlists')
-          .select(
-            `
-              id,
-              status,
-              position,
-              section_id,
-              sections(
-                id,
-                section_number,
-                capacity,
-                enrolled_count,
-                waitlist_count,
-                schedule_days,
-                start_time,
-                end_time,
-                status,
-                term_id,
-                courses(
-                  code,
-                  name,
-                  credits,
-                  departments(code, name, color)
-                ),
-                rooms(code, name),
-                terms(id, name, code, drop_deadline)
-              )
-            `
-          )
-          .eq('student_id', user!.id)
-          .order('position', { ascending: true }),
-        supabase
-          .from('sections')
-          .select(
-            `
-              *,
-              courses(
-                code,
-                name,
-                credits,
-                departments(code, name, color)
-              ),
-              rooms(code, name),
-              terms(id, name, code, drop_deadline)
-            `
-          )
-          .eq('is_active', true)
-          .order('courses(code)'),
-        supabase.from('departments').select('*').order('name'),
-      ]);
-
-      setEnrollments((enrollmentResp.data as EnrollmentRow[]) || []);
-      setWaitlists((waitlistResp.data as WaitlistRow[]) || []);
-      setSections((sectionResp.data as SectionRow[]) || []);
-      setDepartments(departmentResp.data || []);
+      const result = await services.enrollmentService.fetchRegistrationData(user!.id);
+      setEnrollments(result.enrollments);
+      setWaitlists(result.waitlists);
+      setSections(result.sections);
+      setDepartments(result.departments);
     } catch (error) {
       console.error('Error loading registration data:', error);
       setMessage({ type: 'error', text: 'Could not load registration data.' });
@@ -228,7 +94,7 @@ export function RegistrationPage() {
     };
   }, [enrollments, waitlists]);
 
-  async function handleRegister(section: SectionRow) {
+  async function handleRegister(section: RegistrationSection) {
     if (!user) return;
     if (!canWrite) {
       setMessage({
@@ -250,43 +116,11 @@ export function RegistrationPage() {
     setMessage(null);
 
     try {
-      const hasSeat = section.status === 'OPEN' && section.enrolled_count < section.capacity;
-      if (hasSeat) {
-        const { error } = await supabase.from('enrollments').insert({
-          student_id: user.id,
-          section_id: section.id,
-          term_id: section.term_id,
-          status: 'ACTIVE',
-        });
-        if (error) throw error;
-        await supabase
-          .from('sections')
-          .update({ enrolled_count: section.enrolled_count + 1 })
-          .eq('id', section.id);
-        setMessage({ type: 'success', text: 'Enrolled successfully.' });
-      } else {
-        const { count } = await supabase
-          .from('waitlists')
-          .select('id', { count: 'exact', head: true })
-          .eq('section_id', section.id)
-          .eq('term_id', section.term_id);
-        const { error } = await supabase.from('waitlists').insert({
-          student_id: user.id,
-          section_id: section.id,
-          term_id: section.term_id,
-          position: (count ?? 0) + 1,
-          status: 'WAITING',
-        });
-        if (error) throw error;
-        await supabase
-          .from('sections')
-          .update({ waitlist_count: section.waitlist_count + 1 })
-          .eq('id', section.id);
-        setMessage({
-          type: 'success',
-          text: 'Section is full. You have been added to the waitlist.',
-        });
-      }
+      const result = await services.enrollmentService.enrollInSection(user.id, section);
+      setMessage({
+        type: 'success',
+        text: result.status === 'ENROLLED' ? 'Enrolled successfully.' : 'Section is full. You have been added to the waitlist.',
+      });
       await loadData();
     } catch (error) {
       console.error('Error registering for section:', error);
@@ -296,7 +130,7 @@ export function RegistrationPage() {
     }
   }
 
-  async function handleDrop(enrollment: EnrollmentRow) {
+  async function handleDrop(enrollment: RegistrationEnrollment) {
     if (!user) return;
     if (!canWrite) {
       setMessage({
@@ -322,23 +156,7 @@ export function RegistrationPage() {
     setMessage(null);
 
     try {
-      const { error } = await supabase
-        .from('enrollments')
-        .update({
-          status: 'DROPPED',
-          dropped_at: new Date().toISOString(),
-        })
-        .eq('id', enrollment.id)
-        .eq('student_id', user.id);
-      if (error) throw error;
-      if (enrollment.sections) {
-        await supabase
-          .from('sections')
-          .update({
-            enrolled_count: Math.max(enrollment.sections.enrolled_count - 1, 0),
-          })
-          .eq('id', enrollment.section_id);
-      }
+      await services.enrollmentService.dropEnrollment(user.id, enrollment);
       setMessage({ type: 'success', text: 'Course dropped successfully.' });
       await loadData();
     } catch (error) {
@@ -349,7 +167,7 @@ export function RegistrationPage() {
     }
   }
 
-  async function handleWaitlistRemove(entry: WaitlistRow) {
+  async function handleWaitlistRemove(entry: RegistrationWaitlist) {
     if (!user) return;
     if (!canWrite) {
       setMessage({
@@ -364,16 +182,7 @@ export function RegistrationPage() {
     setActionWaitlist(entry.id);
     setMessage(null);
     try {
-      const { error } = await supabase.from('waitlists').delete().eq('id', entry.id).eq('student_id', user.id);
-      if (error) throw error;
-      if (entry.sections) {
-        await supabase
-          .from('sections')
-          .update({
-            waitlist_count: Math.max(entry.sections.waitlist_count - 1, 0),
-          })
-          .eq('id', entry.section_id);
-      }
+      await services.enrollmentService.removeFromWaitlist(user.id, entry);
       setMessage({ type: 'success', text: 'Removed from waitlist.' });
       await loadData();
     } catch (error) {
@@ -384,7 +193,7 @@ export function RegistrationPage() {
     }
   }
 
-  function renderSectionMeta(section: SectionRow) {
+  function renderSectionMeta(section: RegistrationSection) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mt-3">
         <div className="flex items-center space-x-2">

@@ -4,7 +4,6 @@
 *(All baseline items completed)*
 
 ## Platform & Architecture
-- Refactor into modular packages (data/service/ui/api) with DI/service locator replacing direct Supabase calls.
 - Add health checks + configuration diagnostics (datasource ping, config validation).
 
 ## Authentication & Security

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -7,53 +6,12 @@ import { Badge } from '../../components/common/Badge';
 import { Download, UploadCloud, Loader2, BarChart3, ClipboardCheck } from 'lucide-react';
 import { formatDate } from '../../lib/utils';
 import { useMaintenance } from '../../contexts/MaintenanceContext';
-
-interface SectionInfo {
-  id: string;
-  section_number: string;
-  courses: {
-    code: string;
-    name: string;
-  };
-  terms: {
-    name: string;
-    code: string;
-  } | null;
-}
-
-interface Assessment {
-  id: string;
-  name: string;
-  assessment_type: string;
-  max_marks: number;
-  weight: number;
-  due_date: string | null;
-  is_published: boolean;
-}
-
-interface StudentProfile {
-  id: string;
-  first_name: string;
-  last_name: string;
-  student_id: string | null;
-}
-
-interface StudentEnrollment {
-  student_id: string;
-  profile: StudentProfile | null;
-}
+import { services } from '../../services/serviceLocator';
+import type { GradebookAssessment, GradebookSection, GradebookStudent } from '../../services/GradebookService';
 
 interface GradeMapEntry {
   id?: string;
   marks: number | null;
-  status: string;
-}
-
-interface GradeRow {
-  id?: string;
-  assessment_id: string;
-  student_id: string;
-  marks_obtained: number | null;
   status: string;
 }
 
@@ -62,10 +20,10 @@ const gradeKey = (studentId: string, assessmentId: string) => `${studentId}_${as
 export function GradebookPage() {
   const { user } = useAuth();
   const { canWrite } = useMaintenance();
-  const [sections, setSections] = useState<SectionInfo[]>([]);
+  const [sections, setSections] = useState<GradebookSection[]>([]);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [students, setStudents] = useState<StudentEnrollment[]>([]);
+  const [assessments, setAssessments] = useState<GradebookAssessment[]>([]);
+  const [students, setStudents] = useState<GradebookStudent[]>([]);
   const [gradeMap, setGradeMap] = useState<Record<string, GradeMapEntry>>({});
   const [gradeInputs, setGradeInputs] = useState<Record<string, string>>({});
   const [loadingSections, setLoadingSections] = useState(true);
@@ -88,23 +46,9 @@ export function GradebookPage() {
   async function loadSections() {
     setLoadingSections(true);
     try {
-      const { data, error } = await supabase
-        .from('sections')
-        .select(
-          `
-            id,
-            section_number,
-            courses(code, name),
-            terms(name, code)
-          `
-        )
-        .eq('instructor_id', user!.id)
-        .eq('is_active', true)
-        .order('courses(code)');
-
-      if (error) throw error;
-      setSections((data as SectionInfo[]) || []);
-      setSelectedSection((data && data[0]?.id) || null);
+      const list = await services.gradebookService.listSections(user!.id);
+      setSections(list);
+      setSelectedSection(list[0]?.id || null);
     } catch (error) {
       console.error('Error loading sections:', error);
     } finally {
@@ -116,65 +60,12 @@ export function GradebookPage() {
     setLoadingSectionData(true);
     setMessage(null);
     try {
-      const [{ data: assessmentsData }, { data: enrollmentsData }] = await Promise.all([
-        supabase
-          .from('assessments')
-          .select('id, name, assessment_type, max_marks, weight, due_date, is_published')
-          .eq('section_id', sectionId)
-          .order('due_date', { ascending: true }),
-        supabase
-          .from('enrollments')
-          .select('student_id, status')
-          .eq('section_id', sectionId)
-          .eq('status', 'ACTIVE')
-          .order('created_at', { ascending: true }),
-      ]);
-
-      const assessmentList: Assessment[] =
-        (assessmentsData as Assessment[] | null)?.map((assessment) => ({
-          ...assessment,
-          max_marks: Number(assessment.max_marks),
-          weight: Number(assessment.weight),
-        })) || [];
-
-      setAssessments(assessmentList);
-
-      const studentIds = (enrollmentsData as { student_id: string }[] | null)?.map(
-        (enrollment) => enrollment.student_id
-      );
-
-      let profiles: StudentProfile[] = [];
-      if (studentIds && studentIds.length > 0) {
-        const { data: profileRows } = await supabase
-          .from('user_profiles')
-          .select('id, first_name, last_name, student_id')
-          .in('id', studentIds);
-        profiles = (profileRows as StudentProfile[]) || [];
-      }
-
-      const profileMap = new Map(profiles.map((profile) => [profile.id, profile]));
-
-      const studentList: StudentEnrollment[] =
-        (studentIds || []).map((studentId) => ({
-          student_id: studentId,
-          profile: profileMap.get(studentId) || null,
-        })) || [];
-
-      setStudents(studentList);
-
-      let gradeRows: GradeRow[] = [];
-      if (assessmentList.length > 0) {
-        const assessmentIds = assessmentList.map((assessment) => assessment.id);
-        const { data: gradesData } = await supabase
-          .from('grades')
-          .select('id, assessment_id, student_id, marks_obtained, status')
-          .in('assessment_id', assessmentIds);
-        gradeRows = (gradesData as GradeRow[]) || [];
-      }
-
+      const data = await services.gradebookService.fetchSectionData(sectionId);
+      setAssessments(data.assessments);
+      setStudents(data.students);
       const nextGradeMap: Record<string, GradeMapEntry> = {};
       const nextInputs: Record<string, string> = {};
-      gradeRows.forEach((grade) => {
+      data.rows.forEach((grade) => {
         const key = gradeKey(grade.student_id, grade.assessment_id);
         nextGradeMap[key] = {
           id: grade.id,
@@ -199,7 +90,7 @@ export function GradebookPage() {
     setGradeInputs((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function handleSaveGrade(studentId: string, assessment: Assessment) {
+  async function handleSaveGrade(studentId: string, assessment: GradebookAssessment) {
     if (!user) return;
     if (!canWrite) {
       setMessage('Maintenance mode is active. Grade edits are temporarily disabled.');
@@ -219,24 +110,13 @@ export function GradebookPage() {
     }
 
     try {
-      const payload = {
-        id: gradeMap[key]?.id,
-        assessment_id: assessment.id,
-        student_id: studentId,
-        marks_obtained: marks,
-        status: 'GRADED',
-        graded_at: new Date().toISOString(),
-        graded_by: user.id,
-      };
-
-      const { data, error } = await supabase
-        .from('grades')
-        .upsert(payload, { onConflict: 'assessment_id,student_id' })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const data = await services.gradebookService.saveGrade({
+        gradeId: gradeMap[key]?.id,
+        assessmentId: assessment.id,
+        studentId,
+        marks,
+        graderId: user.id,
+      });
       setGradeMap((prev) => ({
         ...prev,
         [key]: {
@@ -349,7 +229,7 @@ export function GradebookPage() {
     try {
       const text = await file.text();
       const lines = text.trim().split(/\r?\n/);
-      const validEntries: { assessment_id: string; student_id: string; marks_obtained: number }[] = [];
+      const validEntries: { assessmentId: string; studentId: string; marks: number }[] = [];
       const studentIds = new Set(students.map((student) => student.student_id));
       const assessmentIds = new Set(assessments.map((assessment) => assessment.id));
 
@@ -364,9 +244,9 @@ export function GradebookPage() {
           return;
         }
         validEntries.push({
-          student_id: studentId,
-          assessment_id: assessmentId,
-          marks_obtained: marks,
+          studentId,
+          assessmentId,
+          marks,
         });
       });
 
@@ -375,18 +255,7 @@ export function GradebookPage() {
         return;
       }
 
-      const payload = validEntries.map((entry) => ({
-        ...entry,
-        status: 'GRADED',
-        graded_by: user!.id,
-        graded_at: new Date().toISOString(),
-      }));
-
-      const { error } = await supabase
-        .from('grades')
-        .upsert(payload, { onConflict: 'assessment_id,student_id' });
-      if (error) throw error;
-
+      await services.gradebookService.importGrades(selectedSection, user.id, validEntries);
       setMessage(`Imported ${validEntries.length} grade rows.`);
       await loadSectionData(selectedSection);
     } catch (error) {

@@ -56,6 +56,7 @@ This document describes the architecture of the University ERP system, a modern 
 - **State Management**: React Context API (auth), Supabase queries for data
 - **Routing**: React Router v6
 - **Styling**: TailwindCSS (utility-first)
+- **Service Layer**: `src/services` hosts data/service packages (e.g., `EnrollmentService`, `GradebookService`) resolved through `serviceLocator`, enabling dependency injection and easier mocking.
 - **Icons**: Lucide React
 - **HTTP Client**: Supabase JS Client (@supabase/supabase-js)
 
