@@ -12,6 +12,7 @@ This system provides comprehensive academic management capabilities for students
 - **Dashboard**: Overview of enrolled courses, upcoming classes, fees, and notifications
 - **Course Catalog**: Browse and search courses with advanced filters
 - **Registration**: Enroll in courses with prerequisite checking, credit cap validation, and waitlist management
+  - Detects time/room clashes before allowing enrollment
 - **Timetable**: Visual weekly schedule with ICS and PDF export
 - **Grades**: View assessments, feedback, and final grades
 - **Transcript**: Generate official transcripts

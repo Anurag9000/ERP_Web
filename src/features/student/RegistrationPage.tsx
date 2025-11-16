@@ -116,7 +116,8 @@ export function RegistrationPage() {
     setMessage(null);
 
     try {
-      const result = await services.enrollmentService.enrollInSection(user.id, section);
+      const currentSections = enrollments.map((enrollment) => enrollment.sections).filter(Boolean) as RegistrationSection[];
+      const result = await services.enrollmentService.enrollInSection(user.id, section, currentSections);
       setMessage({
         type: 'success',
         text: result.status === 'ENROLLED' ? 'Enrolled successfully.' : 'Section is full. You have been added to the waitlist.',
@@ -124,7 +125,13 @@ export function RegistrationPage() {
       await loadData();
     } catch (error) {
       console.error('Error registering for section:', error);
-      setMessage({ type: 'error', text: 'Unable to process registration. Please try again.' });
+      setMessage({
+        type: 'error',
+        text:
+          error instanceof Error && error.message
+            ? error.message
+            : 'Unable to process registration. Please try again.',
+      });
     } finally {
       setActionSection(null);
     }

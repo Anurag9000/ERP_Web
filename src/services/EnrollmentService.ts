@@ -163,7 +163,10 @@ export class EnrollmentService {
     };
   }
 
-  async enrollInSection(studentId: string, section: RegistrationSection) {
+  async enrollInSection(studentId: string, section: RegistrationSection, currentSections: RegistrationSection[]) {
+    if (this.hasConflict(section, currentSections)) {
+      throw new Error('Schedule or room conflict detected with an existing course.');
+    }
     const hasSeat = section.status === 'OPEN' && section.enrolled_count < section.capacity;
 
     if (hasSeat) {
@@ -238,5 +241,26 @@ export class EnrollmentService {
       entityType: 'ENROLLMENT',
       entityId: entry.section_id,
     });
+  }
+
+  private hasConflict(section: RegistrationSection, currentSections: RegistrationSection[]) {
+    return currentSections.some((current) => {
+      const overlappingDay = current.schedule_days.some((day) => section.schedule_days.includes(day));
+      if (!overlappingDay) return false;
+      const overlaps =
+        this.timeToMinutes(section.start_time) < this.timeToMinutes(current.end_time) &&
+        this.timeToMinutes(section.end_time) > this.timeToMinutes(current.start_time);
+      const roomClash =
+        section.rooms?.code &&
+        current.rooms?.code &&
+        section.rooms.code === current.rooms.code &&
+        overlaps;
+      return overlaps || roomClash;
+    });
+  }
+
+  private timeToMinutes(time: string) {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
   }
 }
