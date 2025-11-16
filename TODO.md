@@ -1,4 +1,3 @@
-- Build timetable grid visualization and improved printable/PDF output.
 - Create GPA/standing analytics (trend graphs, probation alerts). ? trend & standing indicators delivered.
 - Add transcript watermarking, certificate downloads, registrar messaging flow.
 - Deliver fee schedule configuration UI, installment visualization, reminder messaging.
