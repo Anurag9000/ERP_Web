@@ -1,4 +1,3 @@
-- Deliver fee schedule configuration UI, installment visualization, reminder messaging.
 - Upgrade notification inbox with maintenance/system broadcast filters, digests, SMS/email stubs, admin history.
 
 ## Instructor Workspace

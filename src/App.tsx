@@ -12,6 +12,7 @@ import { GradesPage } from './features/student/GradesPage';
 import { TranscriptPage } from './features/student/TranscriptPage';
 import { TimetablePage } from './features/student/TimetablePage';
 import { AnalyticsPage } from './features/student/AnalyticsPage';
+import { FinancePage } from './features/student/FinancePage';
 import { GradebookPage } from './features/instructor/GradebookPage';
 import { UserManagementPage } from './features/admin/UserManagementPage';
 import { CourseManagementPage } from './features/admin/CourseManagementPage';
@@ -120,10 +121,7 @@ function App() {
             path="/finance"
             element={
               <ProtectedRoute>
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold text-gray-900">Fees & Payments</h1>
-                  <p className="text-gray-600 mt-2">Manage your fees and payments</p>
-                </div>
+                <FinancePage />
               </ProtectedRoute>
             }
           />

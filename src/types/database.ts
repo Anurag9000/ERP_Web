@@ -82,6 +82,21 @@ export type Database = {
         Insert: Omit<Database['public']['Tables']['courses']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['courses']['Insert']>;
       };
+      fee_structures: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          amount: number;
+          fee_type: string;
+          per_credit: boolean;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['fee_structures']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['fee_structures']['Insert']>;
+      };
       sections: {
         Row: {
           id: string;
@@ -219,6 +234,21 @@ export type Database = {
         };
         Insert: Omit<Database['public']['Tables']['payments']['Row'], 'id' | 'created_at'>;
         Update: Partial<Database['public']['Tables']['payments']['Insert']>;
+      };
+      installment_plans: {
+        Row: {
+          id: string;
+          student_fee_id: string;
+          installment_number: number;
+          amount: number;
+          due_date: string;
+          paid_amount: number;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['installment_plans']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['installment_plans']['Insert']>;
       };
       calendar_events: {
         Row: {

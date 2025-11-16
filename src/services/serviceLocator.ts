@@ -3,6 +3,7 @@ import { GradebookService } from './GradebookService';
 import { AuditService } from './AuditService';
 import { AnalyticsService } from './AnalyticsService';
 import { RegistrarService } from './RegistrarService';
+import { FinanceService } from './FinanceService';
 
 class ServiceLocator {
   readonly auditService = new AuditService();
@@ -10,6 +11,7 @@ class ServiceLocator {
   readonly gradebookService = new GradebookService(this.auditService);
   readonly analyticsService = new AnalyticsService();
   readonly registrarService = new RegistrarService();
+  readonly financeService = new FinanceService();
 }
 
 export const services = new ServiceLocator();
