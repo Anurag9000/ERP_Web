@@ -289,6 +289,16 @@ export function RegistrationPage() {
 
   async function handleDrop(enrollment: EnrollmentRow) {
     if (!user) return;
+    const deadline = enrollment.sections?.terms?.drop_deadline
+      ? new Date(enrollment.sections.terms.drop_deadline)
+      : null;
+    if (deadline && deadline < new Date()) {
+      setMessage({
+        type: 'error',
+        text: `Drop deadline for this course passed on ${deadline.toLocaleDateString()}. Contact your advisor.`,
+      });
+      return;
+    }
     const confirmed = window.confirm('Drop this course? You may need approval to re-enroll.');
     if (!confirmed) return;
 
@@ -457,6 +467,9 @@ export function RegistrationPage() {
           <div className="space-y-4">
             {enrollments.map((enrollment) => {
               const section = enrollment.sections;
+              const dropDeadline =
+                section.terms?.drop_deadline ? new Date(section.terms.drop_deadline) : null;
+              const dropClosed = dropDeadline ? dropDeadline < new Date() : false;
               return (
                 <div
                   key={enrollment.id}
@@ -485,14 +498,23 @@ export function RegistrationPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        disabled={actionEnrollment === enrollment.id}
+                        disabled={actionEnrollment === enrollment.id || dropClosed}
                         onClick={() => handleDrop(enrollment)}
                       >
-                        {actionEnrollment === enrollment.id ? 'Dropping...' : 'Drop'}
+                        {dropClosed
+                          ? 'Deadline Passed'
+                          : actionEnrollment === enrollment.id
+                          ? 'Dropping...'
+                          : 'Drop'}
                       </Button>
                     </div>
                   </div>
                   {renderSectionMeta(section)}
+                  {dropDeadline && (
+                    <p className="text-xs text-gray-500">
+                      Drop deadline: {dropDeadline.toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
               );
             })}

@@ -2,7 +2,6 @@
 
 ## Baseline Specification
 - Enforce maintenance mode across all write paths, not just the banner.
-- Enforce student drop deadlines in UI and backend.
 - Build timetable grid + printable layout.
 - Ship optional backup/restore tooling documented in spec.
 
