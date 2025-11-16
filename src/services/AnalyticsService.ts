@@ -13,12 +13,31 @@ export interface GpaTrendPoint {
   gpa: number;
 }
 
+export type StudentStanding = 'NEW' | 'GOOD' | 'WARNING' | 'PROBATION';
+
+export interface StandingSnapshot {
+  term: string;
+  gpa: number;
+}
+
 export interface StudentAnalytics {
   currentGpa: number;
   totalCredits: number;
   trend: GpaTrendPoint[];
   atRisk: boolean;
+  standing: StudentStanding;
+  trendDelta: number;
+  probationReasons: string[];
+  bestTerm?: StandingSnapshot;
+  worstTerm?: StandingSnapshot;
 }
+
+const TERM_SEASON_ORDER: Record<string, number> = {
+  WINTER: 1,
+  SPRING: 2,
+  SUMMER: 3,
+  FALL: 4,
+};
 
 export class AnalyticsService {
   async fetchGpaTrend(studentId: string): Promise<StudentAnalytics> {
@@ -58,8 +77,9 @@ export class AnalyticsService {
     let totalCredits = 0;
     let totalGradePoints = 0;
     const trend: GpaTrendPoint[] = [];
+    const sortedEntries = Array.from(byTerm.values()).sort((a, b) => this.termSortValue(a.term_code) - this.termSortValue(b.term_code));
 
-    Array.from(byTerm.values()).forEach((entry) => {
+    sortedEntries.forEach((entry) => {
       totalCredits += entry.credits;
       totalGradePoints += entry.grade_points;
       trend.push({
@@ -70,12 +90,54 @@ export class AnalyticsService {
     });
 
     const currentGpa = totalCredits > 0 ? Number((totalGradePoints / totalCredits).toFixed(2)) : 0;
+    const trendDelta =
+      trend.length > 1 ? Number((trend[trend.length - 1].gpa - trend[trend.length - 2].gpa).toFixed(2)) : 0;
+
+    const bestTerm = trend.reduce<StandingSnapshot | undefined>((best, point) => {
+      if (!best || point.gpa > best.gpa) return { term: point.term, gpa: point.gpa };
+      return best;
+    }, undefined);
+    const worstTerm = trend.reduce<StandingSnapshot | undefined>((worst, point) => {
+      if (!worst || point.gpa < worst.gpa) return { term: point.term, gpa: point.gpa };
+      return worst;
+    }, undefined);
+
+    const { standing, probationReasons } = this.calculateStanding(currentGpa, trendDelta, totalCredits);
+    const atRisk = standing === 'WARNING' || standing === 'PROBATION';
 
     return {
       currentGpa,
       totalCredits,
-      trend: trend.sort((a, b) => a.term.localeCompare(b.term)),
-      atRisk: currentGpa > 0 && currentGpa < 2.0,
+      trend,
+      atRisk,
+      standing,
+      trendDelta,
+      probationReasons,
+      bestTerm,
+      worstTerm,
     };
+  }
+
+  private calculateStanding(currentGpa: number, trendDelta: number, totalCredits: number) {
+    const reasons: string[] = [];
+    let standing: StudentStanding = totalCredits === 0 ? 'NEW' : 'GOOD';
+
+    if (totalCredits > 0 && currentGpa < 2.0) {
+      standing = 'PROBATION';
+      reasons.push('GPA below 2.0 probation threshold');
+    } else if (trendDelta <= -0.4) {
+      standing = 'WARNING';
+      reasons.push('GPA dropped significantly since last term');
+    }
+
+    return { standing, probationReasons: reasons };
+  }
+
+  private termSortValue(code: string) {
+    const upper = (code || '').toUpperCase();
+    const season = Object.keys(TERM_SEASON_ORDER).find((name) => upper.includes(name)) || 'FALL';
+    const yearMatch = upper.match(/(\d{4})/);
+    const year = yearMatch ? parseInt(yearMatch[1], 10) : 0;
+    return year * 10 + (TERM_SEASON_ORDER[season] || 0);
   }
 }
