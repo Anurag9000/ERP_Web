@@ -8,6 +8,8 @@ import { NotificationsPage } from './features/notifications/NotificationsPage';
 import { InstructorDashboardPage } from './features/instructor/InstructorDashboardPage';
 import { AdminDashboardPage } from './features/admin/AdminDashboardPage';
 import { RegistrationPage } from './features/student/RegistrationPage';
+import { GradesPage } from './features/student/GradesPage';
+import { TranscriptPage } from './features/student/TranscriptPage';
 import { GradebookPage } from './features/instructor/GradebookPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -95,10 +97,7 @@ function App() {
             path="/grades"
             element={
               <ProtectedRoute>
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold text-gray-900">My Grades</h1>
-                  <p className="text-gray-600 mt-2">View your grades and assessments</p>
-                </div>
+                <GradesPage />
               </ProtectedRoute>
             }
           />
@@ -106,10 +105,7 @@ function App() {
             path="/transcript"
             element={
               <ProtectedRoute>
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold text-gray-900">Transcript</h1>
-                  <p className="text-gray-600 mt-2">View and export your transcript</p>
-                </div>
+                <TranscriptPage />
               </ProtectedRoute>
             }
           />
