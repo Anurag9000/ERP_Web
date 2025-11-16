@@ -1,10 +1,9 @@
 # Outstanding Features & Tasks
 
 ## Baseline Specification
-- Enforce maintenance mode across all write paths, not just the banner.
+*(All baseline items completed)*
 
 ## Platform & Architecture
-- Document dual database split (ERDs, DDL, rollback plan, seed loaders) if applicable.
 - Refactor into modular packages (data/service/ui/api) with DI/service locator replacing direct Supabase calls.
 - Add health checks + configuration diagnostics (datasource ping, config validation).
 

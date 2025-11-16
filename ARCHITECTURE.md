@@ -527,6 +527,29 @@ import { getDepartmentColor, getEventColor } from '@/lib/theme';
 3. **Query Optimization**: Use SELECT specific columns, not SELECT *
 4. **Pagination**: Implement offset/limit on large result sets
 
+### Dual Database Split & Runbooks
+
+While this starter ships with a single Supabase PostgreSQL instance, many deployments introduce a dual-database topology: OLTP (transactional) for the live campus workload and OLAP (warehouse/read replica) for heavy analytics. Supporting that model involves:
+
+1. **Operational Database (OLTP)**
+   - **Schema Source**: `supabase/migrations/20251116040336_001_create_core_schema.sql` is the canonical DDL. Export ERDs from Supabase Studio or import that file into dbdiagram for reviews.
+   - **Seed Loaders**: `supabase/migrations/20251116041116_002_seed_sample_data.sql` seeds default users/courses/sections. Extend with additional fixtures (`supabase/seeds/*.sql`) and apply via `supabase db push`.
+   - **Write Surface**: Enrollment, grading, finance, and notification writes target this database with RLS enforcing strict role scopes.
+
+2. **Reporting Warehouse (OLAP)**
+   - **ETL / Sync**: A nightly job (Supabase Edge Function, Airbyte, dbt, etc.) copies curated views (e.g., transcripts, finance aging) into a warehouse (Snowflake/BigQuery) or Supabase read replica. Only read-only credentials hit this environment.
+   - **Contracts**: Publish denormalized reporting views so BI teams are insulated from OLTP schema churn.
+
+3. **Rollback & Recovery**
+   - **Backups**: Use the pg_dump helpers (`./scripts/db-backup.sh` and `./scripts/db-restore.sh`, documented in `docs/BACKUP_RESTORE.md`) with the Supabase `DATABASE_URL`. Production incidents should leverage Supabase PITR, then replay ETL jobs to refresh OLAP.
+   - **Verification**: After a restore, run smoke tests (login, enrollment, grade entry) before reenabling schedulers or opening write access.
+
+4. **Change Control**
+   - **Migrations**: All schema changes live under `supabase/migrations/`; CI should lint and run them in staging before promoting.
+   - **Seeds**: Keep fixture/seed data synchronized with new columns so new environments, test suites, and OLAP jobs stay consistent.
+
+This playbook keeps the transactional store lean while letting analytics teams evolve reporting infrastructure without risking OLTP integrity.
+
 ### Frontend Performance
 
 1. **Code Splitting**: Route-based code splitting via React Router
