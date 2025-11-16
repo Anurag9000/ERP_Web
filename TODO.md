@@ -2,7 +2,6 @@
 
 ## Baseline Specification
 - Enforce maintenance mode across all write paths, not just the banner.
-- Build timetable grid + printable layout.
 - Ship optional backup/restore tooling documented in spec.
 
 ## Platform & Architecture

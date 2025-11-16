@@ -10,6 +10,7 @@ import { AdminDashboardPage } from './features/admin/AdminDashboardPage';
 import { RegistrationPage } from './features/student/RegistrationPage';
 import { GradesPage } from './features/student/GradesPage';
 import { TranscriptPage } from './features/student/TranscriptPage';
+import { TimetablePage } from './features/student/TimetablePage';
 import { GradebookPage } from './features/instructor/GradebookPage';
 import { UserManagementPage } from './features/admin/UserManagementPage';
 import { CourseManagementPage } from './features/admin/CourseManagementPage';
@@ -92,10 +93,7 @@ function App() {
             path="/timetable"
             element={
               <ProtectedRoute>
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold text-gray-900">My Timetable</h1>
-                  <p className="text-gray-600 mt-2">View your weekly schedule</p>
-                </div>
+                <TimetablePage />
               </ProtectedRoute>
             }
           />
