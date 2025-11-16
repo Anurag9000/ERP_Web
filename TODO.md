@@ -8,11 +8,6 @@
 ## Authentication & Security
 - Extend audit trail logging (maintenance toggles, enrollment overrides, grade edits) and build export UI.
 
-## Data Migration & Repositories
-- Introduce DAO-backed services for enrollment/grade/attendance/waitlist/settings instead of inline Supabase calls.
-- Provide migration tooling/docs to import legacy `.dat` data into SQL.
-- Add datasource health probes and robust DAO error handling strategy.
-
 ## Student Experience
 - Implement complete registration enhancements: clash detection (time & room), automated waitlist promotion with advisor approvals, deadline enforcement, co-/anti-requisite handling, departmental/advisor approvals.
 - Build timetable grid visualization and improved printable/PDF output.

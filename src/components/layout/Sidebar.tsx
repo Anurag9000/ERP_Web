@@ -33,6 +33,7 @@ const navItems: NavItem[] = [
   { to: '/admin/enrollments', icon: ClipboardList, label: 'Enrollment Management', roles: ['ADMIN', 'STAFF'] },
   { to: '/admin/finance', icon: DollarSign, label: 'Finance Admin', roles: ['ADMIN', 'STAFF'] },
   { to: '/admin/settings', icon: Settings, label: 'System Settings', roles: ['ADMIN'] },
+  { to: '/admin/audit', icon: ClipboardList, label: 'Audit Trail', roles: ['ADMIN'] },
 ];
 
 export function Sidebar() {

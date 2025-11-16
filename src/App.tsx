@@ -17,6 +17,7 @@ import { CourseManagementPage } from './features/admin/CourseManagementPage';
 import { SectionManagementPage } from './features/admin/SectionManagementPage';
 import { SystemSettingsPage } from './features/admin/SystemSettingsPage';
 import { AccountSettingsPage } from './features/settings/AccountSettingsPage';
+import { AuditLogPage } from './features/admin/AuditLogPage';
 import { MaintenanceProvider } from './contexts/MaintenanceContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -200,6 +201,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SystemSettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/audit"
+            element={
+              <ProtectedRoute>
+                <AuditLogPage />
               </ProtectedRoute>
             }
           />
