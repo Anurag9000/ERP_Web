@@ -7,6 +7,7 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Loader2 } from 'lucide-react';
 import type { UserRole } from '../../types/database';
+import { useMaintenance } from '../../contexts/MaintenanceContext';
 
 interface UserProfileRow {
   id: string;
@@ -28,6 +29,7 @@ const roleOptions: UserRole[] = ['STUDENT', 'INSTRUCTOR', 'ADMIN', 'STAFF'];
 
 export function UserManagementPage() {
   const { profile } = useAuth();
+  const { canWrite } = useMaintenance();
   const [users, setUsers] = useState<UserProfileRow[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -74,6 +76,10 @@ export function UserManagementPage() {
   }
 
   async function updateUser(userId: string, payload: Partial<UserProfileRow>) {
+    if (!canWrite) {
+      setMessage('Maintenance mode is active. Admin-only write actions are allowed.');
+      return;
+    }
     try {
       setSavingId(userId);
       const { error } = await supabase.from('user_profiles').update(payload).eq('id', userId);
@@ -167,7 +173,7 @@ export function UserManagementPage() {
                     <select
                       value={user.role}
                       className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
-                      disabled={savingId === user.id}
+                      disabled={savingId === user.id || !canWrite}
                       onChange={(e) => updateUser(user.id, { role: e.target.value as UserRole })}
                     >
                       {roleOptions.map((role) => (
@@ -186,7 +192,7 @@ export function UserManagementPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={savingId === user.id}
+                      disabled={savingId === user.id || !canWrite}
                       onClick={() => updateUser(user.id, { is_active: !user.is_active })}
                     >
                       {user.is_active ? 'Deactivate' : 'Activate'}
@@ -194,7 +200,7 @@ export function UserManagementPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      disabled={savingId === user.id}
+                      disabled={savingId === user.id || !canWrite}
                       onClick={() => updateUser(user.id, { must_change_password: true })}
                     >
                       Force Password Reset

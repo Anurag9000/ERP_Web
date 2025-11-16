@@ -5,6 +5,7 @@ import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Loader2, Users } from 'lucide-react';
+import { useMaintenance } from '../../contexts/MaintenanceContext';
 
 interface CourseOption {
   id: string;
@@ -44,6 +45,7 @@ interface SectionRow {
 
 export function SectionManagementPage() {
   const { profile } = useAuth();
+  const { canWrite } = useMaintenance();
   const [sections, setSections] = useState<SectionRow[]>([]);
   const [courses, setCourses] = useState<CourseOption[]>([]);
   const [terms, setTerms] = useState<TermOption[]>([]);
@@ -127,6 +129,10 @@ export function SectionManagementPage() {
   }
 
   async function handleAssign(sectionId: string, instructorId: string) {
+    if (!canWrite) {
+      setMessage('Maintenance mode is active. Write operations are limited to administrators.');
+      return;
+    }
     setSaving(true);
     setMessage(null);
     try {
@@ -146,6 +152,10 @@ export function SectionManagementPage() {
     event.preventDefault();
     if (!form.courseId || !form.termId) {
       setMessage('Select a course and term to create a section.');
+      return;
+    }
+    if (!canWrite) {
+      setMessage('Maintenance mode is active. Write operations are limited to administrators.');
       return;
     }
     setSaving(true);

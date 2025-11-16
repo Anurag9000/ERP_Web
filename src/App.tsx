@@ -15,6 +15,7 @@ import { UserManagementPage } from './features/admin/UserManagementPage';
 import { CourseManagementPage } from './features/admin/CourseManagementPage';
 import { SectionManagementPage } from './features/admin/SectionManagementPage';
 import { SystemSettingsPage } from './features/admin/SystemSettingsPage';
+import { MaintenanceProvider } from './contexts/MaintenanceContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -60,7 +61,8 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <MaintenanceProvider>
+          <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
             path="/dashboard"
@@ -208,6 +210,7 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+        </MaintenanceProvider>
       </AuthProvider>
     </BrowserRouter>
   );

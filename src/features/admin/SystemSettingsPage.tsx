@@ -5,6 +5,7 @@ import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Loader2, AlertTriangle, CalendarClock } from 'lucide-react';
+import { useMaintenance } from '../../contexts/MaintenanceContext';
 
 interface MaintenanceWindow {
   id: string;
@@ -16,6 +17,7 @@ interface MaintenanceWindow {
 
 export function SystemSettingsPage() {
   const { profile } = useAuth();
+  const { canWrite } = useMaintenance();
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [windows, setWindows] = useState<MaintenanceWindow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +61,10 @@ export function SystemSettingsPage() {
   }
 
   async function toggleMaintenance() {
+    if (!canWrite) {
+      setMessage('Maintenance toggles are restricted to administrators during system maintenance.');
+      return;
+    }
     setSaving(true);
     setMessage(null);
     try {
@@ -81,6 +87,10 @@ export function SystemSettingsPage() {
     event.preventDefault();
     if (!form.title || !form.start || !form.end) {
       setMessage('Provide title, start, and end time.');
+      return;
+    }
+    if (!canWrite) {
+      setMessage('Maintenance toggles are restricted to administrators during system maintenance.');
       return;
     }
     setSaving(true);

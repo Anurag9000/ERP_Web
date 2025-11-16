@@ -5,6 +5,7 @@ import { Card } from '../../components/common/Card';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { Loader2 } from 'lucide-react';
+import { useMaintenance } from '../../contexts/MaintenanceContext';
 
 interface Department {
   id: string;
@@ -24,6 +25,7 @@ interface CourseRow {
 
 export function CourseManagementPage() {
   const { profile } = useAuth();
+  const { canWrite } = useMaintenance();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [courses, setCourses] = useState<CourseRow[]>([]);
   const [form, setForm] = useState({
@@ -71,6 +73,10 @@ export function CourseManagementPage() {
 
   async function handleAddCourse(event: FormEvent) {
     event.preventDefault();
+    if (!canWrite) {
+      setMessage('Maintenance mode is active. Write operations are limited to administrators.');
+      return;
+    }
     if (!form.departmentId) {
       setMessage('Please select a department.');
       return;
@@ -100,6 +106,10 @@ export function CourseManagementPage() {
   }
 
   async function toggleCourse(courseId: string, active: boolean) {
+    if (!canWrite) {
+      setMessage('Maintenance mode is active. Write operations are limited to administrators.');
+      return;
+    }
     setSaving(true);
     setMessage(null);
     try {
@@ -236,7 +246,7 @@ export function CourseManagementPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={saving}
+                      disabled={saving || !canWrite}
                       onClick={() => toggleCourse(course.id, !course.is_active)}
                     >
                       {course.is_active ? 'Deactivate' : 'Activate'}
