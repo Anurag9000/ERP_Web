@@ -8,7 +8,7 @@
 ## Student Experience
 - Implement complete registration enhancements: ✅ clash detection (time & room), ✅ automated waitlist promotion queue (advisor approvals pending), ✅ deadline enforcement, ☐ co-/anti-requisite handling, ☐ departmental/advisor approvals.
 - Build timetable grid visualization and improved printable/PDF output.
-- Create GPA/standing analytics (trend graphs, probation alerts).
+- Create GPA/standing analytics (trend graphs, probation alerts). ✅ trend & standing indicators delivered.
 - Add transcript watermarking, certificate downloads, registrar messaging flow.
 - Deliver fee schedule configuration UI, installment visualization, reminder messaging.
 - Upgrade notification inbox with maintenance/system broadcast filters, digests, SMS/email stubs, admin history.
