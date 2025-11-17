@@ -3,7 +3,7 @@ import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { BookOpen, Users, ClipboardList, Bell } from 'lucide-react';
+import { BookOpen, Users, ClipboardList, Bell, PieChart, Activity, BarChart2 } from 'lucide-react';
 import { formatTime, getDayAbbreviation } from '../../lib/utils';
 
 interface InstructorSection {
@@ -25,6 +25,32 @@ interface InstructorStats {
   unreadNotifications: number;
 }
 
+interface InstructorAnalytics {
+  gradeDistribution: Record<'A' | 'B' | 'C' | 'D' | 'F', number>;
+  totalGrades: number;
+  passRate: number;
+  failRate: number;
+  attendance: {
+    present: number;
+    absent: number;
+    late: number;
+    excused: number;
+  };
+}
+
+const defaultAnalytics: InstructorAnalytics = {
+  gradeDistribution: { A: 0, B: 0, C: 0, D: 0, F: 0 },
+  totalGrades: 0,
+  passRate: 0,
+  failRate: 0,
+  attendance: {
+    present: 0,
+    absent: 0,
+    late: 0,
+    excused: 0,
+  },
+};
+
 export function InstructorDashboardPage() {
   const { user } = useAuth();
   const [sections, setSections] = useState<InstructorSection[]>([]);
@@ -34,6 +60,7 @@ export function InstructorDashboardPage() {
     gradingDue: 0,
     unreadNotifications: 0,
   });
+  const [analytics, setAnalytics] = useState<InstructorAnalytics>(defaultAnalytics);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -92,10 +119,86 @@ export function InstructorDashboardPage() {
         ),
         unreadNotifications: notificationsCount.count ?? 0,
       });
+      await loadAnalytics(resolvedSections.map((section) => section.id));
     } catch (error) {
       console.error('Error loading instructor dashboard:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadAnalytics(sectionIds: string[]) {
+    if (!sectionIds.length) {
+      setAnalytics(defaultAnalytics);
+      return;
+    }
+    try {
+      const since = new Date();
+      since.setDate(since.getDate() - 30);
+      const sinceStr = since.toISOString().split('T')[0];
+
+      const [gradeResp, attendanceResp] = await Promise.all([
+        supabase
+          .from('grades')
+          .select(
+            `
+              marks_obtained,
+              assessments (
+                section_id,
+                max_marks
+              )
+            `
+          )
+          .in('assessments.section_id', sectionIds),
+        supabase
+          .from('attendance_records')
+          .select('status')
+          .in('section_id', sectionIds)
+          .gte('attendance_date', sinceStr),
+      ]);
+
+      if (gradeResp.error) throw gradeResp.error;
+      if (attendanceResp.error) throw attendanceResp.error;
+
+      const distribution: InstructorAnalytics['gradeDistribution'] = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+      let pass = 0;
+      let fail = 0;
+
+      (gradeResp.data || []).forEach((record: any) => {
+        const marks = record.marks_obtained;
+        const max = record.assessments?.max_marks || 0;
+        if (marks === null || marks === undefined || !max) {
+          return;
+        }
+        const percent = (marks / max) * 100;
+        if (percent >= 90) distribution.A += 1;
+        else if (percent >= 80) distribution.B += 1;
+        else if (percent >= 70) distribution.C += 1;
+        else if (percent >= 60) distribution.D += 1;
+        else distribution.F += 1;
+
+        if (percent >= 60) pass += 1;
+        else fail += 1;
+      });
+
+      const attendanceCounts = { present: 0, absent: 0, late: 0, excused: 0 };
+      (attendanceResp.data || []).forEach((entry: any) => {
+        if (entry.status === 'PRESENT') attendanceCounts.present += 1;
+        else if (entry.status === 'ABSENT') attendanceCounts.absent += 1;
+        else if (entry.status === 'LATE') attendanceCounts.late += 1;
+        else if (entry.status === 'EXCUSED') attendanceCounts.excused += 1;
+      });
+
+      setAnalytics({
+        gradeDistribution: distribution,
+        totalGrades: Object.values(distribution).reduce((sum, value) => sum + value, 0),
+        passRate: pass,
+        failRate: fail,
+        attendance: attendanceCounts,
+      });
+    } catch (error) {
+      console.error('Error loading analytics', error);
+      setAnalytics(defaultAnalytics);
     }
   }
 
@@ -166,6 +269,75 @@ export function InstructorDashboardPage() {
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card title="Grade Distribution (last 30 days)">
+          {analytics.totalGrades === 0 ? (
+            <p className="text-sm text-gray-500">No graded submissions yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {Object.entries(analytics.gradeDistribution).map(([bucket, value]) => {
+                const percent = Math.round((value / analytics.totalGrades) * 100);
+                return (
+                  <div key={bucket}>
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>{bucket}</span>
+                      <span>
+                        {value} · {percent}%
+                      </span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-500"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        <Card title="Pass vs Fail" subtitle="Threshold ≥ 60%">
+          {analytics.totalGrades === 0 ? (
+            <p className="text-sm text-gray-500">No graded submissions yet.</p>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase text-gray-500">Pass</p>
+                  <p className="text-2xl font-bold text-green-600">{analytics.passRate}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-gray-500">Fail</p>
+                  <p className="text-2xl font-bold text-red-600">{analytics.failRate}</p>
+                </div>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-500"
+                  style={{
+                    width:
+                      analytics.passRate + analytics.failRate > 0
+                        ? `${(analytics.passRate / (analytics.passRate + analytics.failRate)) * 100}%`
+                        : '0%',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </Card>
+
+        <Card title="Attendance Mix" subtitle="Rolling 30-day snapshot">
+          <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+            <AnalyticsTile icon={PieChart} label="Present" value={analytics.attendance.present} accent="text-green-600" />
+            <AnalyticsTile icon={Activity} label="Late" value={analytics.attendance.late} accent="text-amber-600" />
+            <AnalyticsTile icon={BarChart2} label="Absent" value={analytics.attendance.absent} accent="text-red-600" />
+            <AnalyticsTile icon={ClipboardList} label="Excused" value={analytics.attendance.excused} accent="text-indigo-600" />
+          </div>
+        </Card>
+      </div>
+
       <Card title="My Sections">
         {topSections.length === 0 ? (
           <p className="text-gray-500 text-center py-6">No active sections assigned.</p>
@@ -200,6 +372,30 @@ export function InstructorDashboardPage() {
           </div>
         )}
       </Card>
+    </div>
+  );
+}
+
+function AnalyticsTile({
+  icon: Icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: number;
+  accent?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 p-4 flex items-center space-x-3">
+      <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center">
+        <Icon className={`w-5 h-5 ${accent || 'text-gray-600'}`} />
+      </div>
+      <div>
+        <p className="text-xs uppercase text-gray-500">{label}</p>
+        <p className={`text-lg font-semibold ${accent || 'text-gray-900'}`}>{value}</p>
+      </div>
     </div>
   );
 }
