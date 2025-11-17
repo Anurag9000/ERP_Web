@@ -1,4 +1,3 @@
-- Upgrade notification inbox with maintenance/system broadcast filters, digests, SMS/email stubs, admin history.
 
 ## Instructor Workspace
 - Implement attendance CSV import/export, bulk updates, tardiness tracking, analytics dashboards.
@@ -33,7 +32,7 @@
 - Review logging/audit configuration (Logback-equivalent tuning, retention policy).
 
 ## Documentation & Deliverables
-- Produce architecture/maintenance/enhancement/testing report (5‚Äì7 pages).
+- Produce architecture/maintenance/enhancement/testing report (5ñ7 pages).
 - Generate diagram set (use-case, ERD, component/class, sequence).
 - Expand how-to-run docs with environment setup, default credentials, migration instructions.
 - Create demo assets (storyboard, script, slides, recorded walkthrough).
@@ -54,7 +53,7 @@
 - **Calendar & Planner:** Central smart calendar hub, auto-filled classes/tests, manual opt-in events, pastel subject palette, dot indicators, weekly/monthly planners.
 - **Visual Design System:** Enforce pastel UI theme, subject color consistency across modules, minimal UX rules.
 - **Event Philosophy:** Opt-in event handling, headline-only defaults, strict noise control (no auto dumps).
-- **Faculty Interaction:** Appointment/slot booking, TA routing, professor profile visibility, ‚ÄúWhere‚Äôs My Prof?‚Äù lookup, availability timelines.
+- **Faculty Interaction:** Appointment/slot booking, TA routing, professor profile visibility, ìWhereís My Prof?î lookup, availability timelines.
 - **Personalisation & Notifications:** Per-category preferences, anti-spam rules, personalised defaults.
 - **Department Logic:** Dept-based default visibility, cross-department toggle/curiosity workflows.
 - **Rollout/Trust/Architecture:** Institute-first rollout strategy, app vs web usage guidance, privacy/compliance plan.
@@ -65,7 +64,7 @@
 - Examination window experience: exam form, fee, admit card, syllabus, datesheet, marksheet in one flow.
 - Announcements hub with multi-category feeds, opt-in calendar additions, and noise controls.
 - Faculty communication flow (appointment requests, TA routing, formal contact info).
-- Professor profile visibility including ‚ÄúWhere‚Äôs my prof now?‚Äù quick lookup.
+- Professor profile visibility including ìWhereís my prof now?î quick lookup.
 - Color-coding system ensuring consistent pastel palette across calendar/assignments/marks/faculty references.
 - Notification strategy: assignment/test reminders, minimal nudges, user-level spam control.
 - Grades tracking enhancements (per assessment/test marks, SGPA/CGPA trackers, course-wise breakdown).
@@ -78,11 +77,11 @@
 - Meeting slots workflow (students request, professors approve/offer slots).
 - Manual event philosophy enforcement (opt-in campus events only).
 - Booking tutor/TA support channel with routing.
-- Unified exam artefacts UX ensuring form‚Üíadmit‚Üísyllabus‚Üídatesheet‚Üímarksheet continuity.
+- Unified exam artefacts UX ensuring form?admit?syllabus?datesheet?marksheet continuity.
 - App/web balance plan (high-frequency tasks in app, low-touch via web).
 - Admin/prof controls over timetable/course artefacts; others view-only.
 - Announcement safety rails where categories drive notification priority.
-- Research/collaboration mode for student‚Äìprofessor connections.
+- Research/collaboration mode for studentñprofessor connections.
 - Personalisation defaults (auto-load must-have entries, electives opt-in).
 - Cross-department curiosity subscriptions for events/timetables.
 - Scalable architecture hooks for configurable categories/roles/mark schemes.

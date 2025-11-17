@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { Bell, BellOff, Check, CheckCheck, Trash2, RefreshCw } from 'lucide-react';
+import { Bell, BellOff, Check, CheckCheck, Trash2, RefreshCw, Radio } from 'lucide-react';
 import { getNotificationColor, getPriorityColor } from '../../lib/theme';
 import { formatDateTime } from '../../lib/utils';
 
@@ -20,13 +20,23 @@ interface Notification {
   read_at: string | null;
 }
 
+interface NotificationPreference {
+  category: string;
+  enabled: boolean;
+  delivery_method: string | null;
+}
+
 export function NotificationsPage() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [priorityFilter, setPriorityFilter] = useState('ALL');
+  const [maintenanceOnly, setMaintenanceOnly] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [preferences, setPreferences] = useState<Record<string, NotificationPreference>>({});
+  const [savingPreference, setSavingPreference] = useState(false);
 
   const categories = [
     'ALL',
@@ -34,6 +44,7 @@ export function NotificationsPage() {
     'FINANCE',
     'EVENTS',
     'SYSTEM',
+    'MAINTENANCE',
     'CLUBS',
     'GRADES',
     'ATTENDANCE',
@@ -41,15 +52,18 @@ export function NotificationsPage() {
   ];
 
   useEffect(() => {
-    if (user) {
-      loadNotifications();
-      subscribeToNotifications();
-    }
+    if (!user) return;
+    loadNotifications();
+    loadPreferences();
+    const unsubscribe = subscribeToNotifications();
+    return () => {
+      unsubscribe?.();
+    };
   }, [user]);
 
   useEffect(() => {
     applyFilters();
-  }, [notifications, selectedCategory, showUnreadOnly]);
+  }, [notifications, selectedCategory, showUnreadOnly, priorityFilter, maintenanceOnly]);
 
   async function loadNotifications() {
     try {
@@ -70,6 +84,7 @@ export function NotificationsPage() {
   }
 
   function subscribeToNotifications() {
+    if (!user) return;
     const subscription = supabase
       .channel('notifications')
       .on(
@@ -91,6 +106,67 @@ export function NotificationsPage() {
     };
   }
 
+  async function loadPreferences() {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('category', ['SYSTEM', 'MAINTENANCE', 'DIGEST']);
+      if (error) throw error;
+      const next: Record<string, NotificationPreference> = {};
+      data?.forEach((pref) => {
+        next[pref.category] = {
+          category: pref.category,
+          enabled: pref.enabled,
+          delivery_method: pref.delivery_method,
+        };
+      });
+      setPreferences(next);
+    } catch (error) {
+      console.error('Error loading notification preferences:', error);
+    }
+  }
+
+  async function updatePreference(category: string, updates: Partial<NotificationPreference>) {
+    if (!user) return;
+    try {
+      setSavingPreference(true);
+      const previous = preferences[category];
+      const payload = {
+        enabled: updates.enabled ?? previous?.enabled ?? true,
+        delivery_method: updates.delivery_method ?? previous?.delivery_method ?? 'IN_APP',
+      };
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .upsert(
+          {
+            user_id: user.id,
+            category,
+            enabled: payload.enabled,
+            delivery_method: payload.delivery_method,
+          },
+          { onConflict: 'user_id,category' }
+        )
+        .select('*')
+        .single();
+      if (error) throw error;
+      setPreferences((prev) => ({
+        ...prev,
+        [category]: {
+          category,
+          enabled: data.enabled,
+          delivery_method: data.delivery_method,
+        },
+      }));
+    } catch (error) {
+      console.error('Error updating notification preference:', error);
+    } finally {
+      setSavingPreference(false);
+    }
+  }
+
   function applyFilters() {
     let filtered = [...notifications];
 
@@ -98,8 +174,16 @@ export function NotificationsPage() {
       filtered = filtered.filter((notif) => notif.category === selectedCategory);
     }
 
+    if (maintenanceOnly) {
+      filtered = filtered.filter((notif) => ['SYSTEM', 'MAINTENANCE'].includes(notif.category));
+    }
+
     if (showUnreadOnly) {
       filtered = filtered.filter((notif) => !notif.is_read);
+    }
+
+    if (priorityFilter !== 'ALL') {
+      filtered = filtered.filter((notif) => notif.priority === priorityFilter);
     }
 
     setFilteredNotifications(filtered);
@@ -167,6 +251,11 @@ export function NotificationsPage() {
   }
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const systemHistory = useMemo(
+    () => notifications.filter((notif) => ['SYSTEM', 'MAINTENANCE'].includes(notif.category)).slice(0, 6),
+    [notifications]
+  );
+  const digestPreference = preferences['DIGEST'];
 
   if (loading) {
     return (
@@ -201,22 +290,22 @@ export function NotificationsPage() {
 
       <Card>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    selectedCategory === category
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  selectedCategory === category
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-4 items-center justify-between">
             <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -226,9 +315,152 @@ export function NotificationsPage() {
               />
               <span className="text-sm font-medium text-gray-700">Unread only</span>
             </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={maintenanceOnly}
+                onChange={(e) => setMaintenanceOnly(e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Maintenance & system</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700">Priority</span>
+              <select
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                value={priorityFilter}
+                onChange={(event) => setPriorityFilter(event.target.value)}
+              >
+                <option value="ALL">All</option>
+                <option value="LOW">Low</option>
+                <option value="NORMAL">Normal</option>
+                <option value="HIGH">High</option>
+                <option value="URGENT">Urgent</option>
+              </select>
+            </label>
           </div>
         </div>
       </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card title="Maintenance & Broadcast Filters" className="lg:col-span-2">
+          <div className="space-y-4">
+            {['SYSTEM', 'MAINTENANCE'].map((category) => {
+              const pref = preferences[category];
+              return (
+                <div
+                  key={category}
+                  className="flex items-center justify-between border border-gray-100 rounded-xl px-4 py-3"
+                >
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {category === 'SYSTEM' ? 'System Broadcasts' : 'Maintenance Alerts'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {category === 'SYSTEM'
+                        ? 'Receive campus-wide notices and admin broadcasts.'
+                        : 'Receive maintenance mode toggles, countdowns, and overrides.'}
+                    </p>
+                  </div>
+                  <label className="inline-flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      checked={pref?.enabled ?? true}
+                      onChange={(event) => updatePreference(category, { enabled: event.target.checked })}
+                      disabled={savingPreference}
+                    />
+                    <span className="text-sm text-gray-700">{pref?.enabled === false ? 'Disabled' : 'Enabled'}</span>
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card title="Digest & Delivery" subtitle="Consolidate alerts into email or SMS summaries">
+          {digestPreference ? (
+            <div className="space-y-4 text-sm text-gray-700">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  checked={digestPreference.enabled}
+                  onChange={(event) => updatePreference('DIGEST', { enabled: event.target.checked })}
+                  disabled={savingPreference}
+                />
+                <span>Enable digest mode</span>
+              </label>
+              <select
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                value={digestPreference.delivery_method || 'WEEKLY'}
+                onChange={(event) => updatePreference('DIGEST', { delivery_method: event.target.value })}
+                disabled={savingPreference}
+              >
+                <option value="DAILY">Daily summary (email)</option>
+                <option value="WEEKLY">Weekly digest (email)</option>
+                <option value="SMS">SMS alert (prototype)</option>
+              </select>
+              <div className="rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2 text-xs text-indigo-800 flex space-x-2">
+                <Radio className="w-4 h-4" />
+                <span>
+                  {digestPreference.enabled
+                    ? `Digest queued for ${digestPreference.delivery_method?.toLowerCase() || 'weekly'} delivery.`
+                    : 'Digest disabled. Enable to consolidate notifications.'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <Button size="sm" onClick={() => updatePreference('DIGEST', { enabled: true, delivery_method: 'WEEKLY' })}>
+              Enable digest
+            </Button>
+          )}
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card title="SMS & Email Stubs" subtitle="Prototype view of cross-channel delivery">
+          <div className="space-y-4 text-sm text-gray-700">
+            <div className="p-3 border border-gray-200 rounded-lg">
+              <p className="text-xs uppercase text-gray-500">SMS preview</p>
+              <p className="font-mono mt-1 text-gray-900">
+                [ERP] Maintenance tonight 11 PM - 1 AM. Registration locked. Check portal for countdown.
+              </p>
+            </div>
+            <div className="p-3 border border-gray-200 rounded-lg">
+              <p className="text-xs uppercase text-gray-500">Email preview</p>
+              <p className="font-semibold text-gray-900">Weekly Digest - {new Date().toLocaleDateString()}</p>
+              <p className="text-gray-600">
+                {unreadCount} unread items · includes maintenance toggles, grade updates, and finance reminders.
+              </p>
+            </div>
+            <p className="text-xs text-gray-500">
+              SMS/email delivery is stubbed in this build. Integrate providers (Twilio, SES, etc.) before enabling in production.
+            </p>
+          </div>
+        </Card>
+
+        <Card title="System Broadcast History" subtitle="Recent maintenance/system notices">
+          {systemHistory.length === 0 ? (
+            <p className="text-sm text-gray-500">No system broadcasts yet.</p>
+          ) : (
+            <div className="space-y-3 text-sm">
+              {systemHistory.map((notif) => (
+                <div key={notif.id} className="p-3 border border-gray-100 rounded-xl bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-gray-900">{notif.title}</p>
+                    <span className="text-xs text-gray-500">{formatDateTime(notif.created_at)}</span>
+                  </div>
+                  <p className="text-gray-600">{notif.message}</p>
+                  <div className="mt-1 text-xs text-gray-500 uppercase">
+                    {notif.priority} · {notif.category}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
 
       <div className="space-y-3">
         {filteredNotifications.length === 0 ? (
