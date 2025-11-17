@@ -1,6 +1,5 @@
 
 ## Instructor Workspace
-- Build messaging hub for instructors to reach enrolled students/sections.
 - Create section planner with room clash/capacity warnings.
 
 ## Admin Console & Operations

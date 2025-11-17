@@ -1,8 +1,19 @@
 import { NavLink } from 'react-router-dom';
 import {
-  Home, BookOpen, Calendar, GraduationCap, DollarSign,
-  Bell, FileText, BarChart3, Users, Settings, ClipboardList,
-  UserCheck, BookMarked
+  Home,
+  BookOpen,
+  Calendar,
+  GraduationCap,
+  DollarSign,
+  Bell,
+  FileText,
+  BarChart3,
+  Users,
+  Settings,
+  ClipboardList,
+  UserCheck,
+  BookMarked,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
@@ -25,6 +36,7 @@ const navItems: NavItem[] = [
   { to: '/sections', icon: BookMarked, label: 'My Sections', roles: ['INSTRUCTOR'] },
   { to: '/gradebook', icon: GraduationCap, label: 'Gradebook', roles: ['INSTRUCTOR'] },
   { to: '/attendance', icon: UserCheck, label: 'Attendance', roles: ['INSTRUCTOR'] },
+  { to: '/messages', icon: MessageSquare, label: 'Messaging Hub', roles: ['INSTRUCTOR'] },
   { to: '/analytics', icon: BarChart3, label: 'Analytics', roles: ['STUDENT', 'INSTRUCTOR', 'ADMIN'] },
   { to: '/calendar', icon: Calendar, label: 'Smart Calendar', roles: ['STUDENT', 'INSTRUCTOR', 'ADMIN', 'STAFF'] },
   { to: '/notifications', icon: Bell, label: 'Notifications', roles: ['STUDENT', 'INSTRUCTOR', 'ADMIN', 'STAFF'] },

@@ -5,6 +5,7 @@ import { AnalyticsService } from './AnalyticsService';
 import { RegistrarService } from './RegistrarService';
 import { FinanceService } from './FinanceService';
 import { InstructorAttendanceService } from './InstructorAttendanceService';
+import { InstructorMessagingService } from './InstructorMessagingService';
 
 class ServiceLocator {
   readonly auditService = new AuditService();
@@ -14,6 +15,7 @@ class ServiceLocator {
   readonly registrarService = new RegistrarService();
   readonly financeService = new FinanceService();
   readonly instructorAttendanceService = new InstructorAttendanceService();
+  readonly instructorMessagingService = new InstructorMessagingService();
 }
 
 export const services = new ServiceLocator();

@@ -313,6 +313,31 @@ export type Database = {
         Insert: Omit<Database['public']['Tables']['notification_preferences']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['notification_preferences']['Insert']>;
       };
+      section_messages: {
+        Row: {
+          id: string;
+          section_id: string;
+          instructor_id: string;
+          title: string;
+          body: string;
+          delivery_scope: string;
+          delivery_channel: string;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['section_messages']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['section_messages']['Insert']>;
+      };
+      section_message_recipients: {
+        Row: {
+          id: string;
+          message_id: string;
+          student_id: string;
+          status: string;
+          read_at: string | null;
+        };
+        Insert: Omit<Database['public']['Tables']['section_message_recipients']['Row'], 'id' | 'read_at'>;
+        Update: Partial<Database['public']['Tables']['section_message_recipients']['Insert']>;
+      };
       registrar_requests: {
         Row: {
           id: string;

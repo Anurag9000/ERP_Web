@@ -15,6 +15,7 @@ import { AnalyticsPage } from './features/student/AnalyticsPage';
 import { FinancePage } from './features/student/FinancePage';
 import { GradebookPage } from './features/instructor/GradebookPage';
 import { AttendancePage } from './features/instructor/AttendancePage';
+import { MessagingPage } from './features/instructor/MessagingPage';
 import { UserManagementPage } from './features/admin/UserManagementPage';
 import { CourseManagementPage } from './features/admin/CourseManagementPage';
 import { SectionManagementPage } from './features/admin/SectionManagementPage';
@@ -139,6 +140,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AttendancePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <MessagingPage />
               </ProtectedRoute>
             }
           />
