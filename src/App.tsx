@@ -14,6 +14,7 @@ import { TimetablePage } from './features/student/TimetablePage';
 import { AnalyticsPage } from './features/student/AnalyticsPage';
 import { FinancePage } from './features/student/FinancePage';
 import { GradebookPage } from './features/instructor/GradebookPage';
+import { AttendancePage } from './features/instructor/AttendancePage';
 import { UserManagementPage } from './features/admin/UserManagementPage';
 import { CourseManagementPage } from './features/admin/CourseManagementPage';
 import { SectionManagementPage } from './features/admin/SectionManagementPage';
@@ -130,6 +131,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <GradebookPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/attendance"
+            element={
+              <ProtectedRoute>
+                <AttendancePage />
               </ProtectedRoute>
             }
           />
