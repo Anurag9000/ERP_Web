@@ -42,6 +42,7 @@ const navItems: NavItem[] = [
   { to: '/notifications', icon: Bell, label: 'Notifications', roles: ['STUDENT', 'INSTRUCTOR', 'ADMIN', 'STAFF'] },
   { to: '/admin/users', icon: Users, label: 'User Management', roles: ['ADMIN'] },
   { to: '/admin/courses', icon: BookOpen, label: 'Course Management', roles: ['ADMIN', 'STAFF'] },
+  { to: '/admin/section-planner', icon: Map, label: 'Section Planner', roles: ['ADMIN', 'STAFF'] },
   { to: '/admin/enrollments', icon: ClipboardList, label: 'Enrollment Management', roles: ['ADMIN', 'STAFF'] },
   { to: '/admin/finance', icon: DollarSign, label: 'Finance Admin', roles: ['ADMIN', 'STAFF'] },
   { to: '/admin/settings', icon: Settings, label: 'System Settings', roles: ['ADMIN'] },

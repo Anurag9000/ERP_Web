@@ -87,7 +87,7 @@ interface CourseRow {
 }
 
 export class EnrollmentService {
-  constructor(private readonly audit: AuditService) {}
+  constructor(private readonly audit: AuditService) { }
   async fetchRegistrationData(studentId: string): Promise<RegistrationData> {
     const [enrollmentResp, waitlistResp, sectionResp, departmentResp] = await Promise.all([
       supabase
@@ -242,6 +242,64 @@ export class EnrollmentService {
     return { status: 'WAITLISTED' as const };
   }
 
+  async forceEnroll(studentId: string, section: RegistrationSection, adminId: string, reason: string) {
+    // 1. Check if already enrolled
+    const { data: existing } = await supabase
+      .from('enrollments')
+      .select('id, status')
+      .eq('student_id', studentId)
+      .eq('section_id', section.id)
+      .maybeSingle();
+
+    if (existing && existing.status === 'ACTIVE') {
+      throw new Error('Student is already enrolled in this section.');
+    }
+
+    // 2. Insert or Update Enrollment
+    if (existing) {
+      // Re-activate if dropped or waitlisted
+      const { error } = await supabase
+        .from('enrollments')
+        .update({
+          status: 'ACTIVE',
+          enrolled_at: new Date().toISOString(),
+        })
+        .eq('id', existing.id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('enrollments').insert({
+        student_id: studentId,
+        section_id: section.id,
+        term_id: section.term_id,
+        status: 'ACTIVE',
+      });
+      if (error) throw error;
+    }
+
+    // 3. Remove from Waitlist if exists
+    await supabase.from('waitlists').delete().eq('section_id', section.id).eq('student_id', studentId);
+
+    // 4. Update Section Counts
+    // We intentionally do NOT check capacity here.
+    const { error: countError } = await supabase
+      .from('sections')
+      .update({ enrolled_count: section.enrolled_count + 1 })
+      .eq('id', section.id);
+
+    if (countError) console.error('Failed to update enrolled_count', countError);
+
+    // 5. Audit Log (Special Override Type)
+    await this.audit.record({
+      userId: adminId,
+      action: 'OVERRIDE_ENROLL',
+      entityType: 'ENROLLMENT',
+      entityId: section.id,
+      details: { studentId, reason },
+    });
+
+    return { status: 'ENROLLED', override: true };
+  }
+
   async dropEnrollment(studentId: string, enrollment: RegistrationEnrollment) {
     const { error } = await supabase
       .from('enrollments')
@@ -259,6 +317,9 @@ export class EnrollmentService {
         .eq('id', enrollment.section_id);
     }
     await this.audit.enrollment(studentId, enrollment.section_id, 'DROPPED');
+
+    // Attempt to promote from waitlist
+    await this.promoteFromWaitlist(enrollment.section_id);
   }
 
   async removeFromWaitlist(studentId: string, entry: RegistrationWaitlist) {

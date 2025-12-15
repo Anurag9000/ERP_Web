@@ -6,6 +6,21 @@ import { RegistrarService } from './RegistrarService';
 import { FinanceService } from './FinanceService';
 import { InstructorAttendanceService } from './InstructorAttendanceService';
 import { InstructorMessagingService } from './InstructorMessagingService';
+import { SectionPlannerService } from './SectionPlannerService';
+import { CalendarService } from './CalendarService';
+import { ImportExportService } from './ImportExportService';
+import { ReportingService } from './ReportingService';
+import { AssignmentService } from './AssignmentService';
+import { ExaminationService } from './ExaminationService';
+import { AnnouncementService } from './AnnouncementService';
+import { DegreeAuditService } from './DegreeAuditService';
+import { FacultyService } from './FacultyService';
+import { EnhancedGradebookService } from './EnhancedGradebookService';
+import { EnhancedAttendanceService } from './EnhancedAttendanceService';
+import { StudentAttendanceService } from './StudentAttendanceService';
+import { CalendarSyncService } from './CalendarSyncService';
+import { GoogleClassroomService } from './GoogleClassroomService';
+import { LearningGoalsService } from './LearningGoalsService';
 
 class ServiceLocator {
   readonly auditService = new AuditService();
@@ -16,6 +31,21 @@ class ServiceLocator {
   readonly financeService = new FinanceService();
   readonly instructorAttendanceService = new InstructorAttendanceService();
   readonly instructorMessagingService = new InstructorMessagingService();
+  readonly sectionPlannerService = new SectionPlannerService();
+  readonly calendarService = new CalendarService();
+  readonly importExportService = new ImportExportService();
+  readonly reportingService = new ReportingService();
+  readonly assignmentService = new AssignmentService();
+  readonly examinationService = new ExaminationService();
+  readonly announcementService = new AnnouncementService();
+  readonly degreeAuditService = new DegreeAuditService();
+  readonly facultyService = new FacultyService();
+  readonly enhancedGradebookService = new EnhancedGradebookService();
+  readonly enhancedAttendanceService = new EnhancedAttendanceService();
+  readonly studentAttendanceService = new StudentAttendanceService();
+  readonly calendarSyncService = new CalendarSyncService();
+  readonly googleClassroomService = new GoogleClassroomService();
+  readonly learningGoalsService = new LearningGoalsService();
 }
 
 export const services = new ServiceLocator();

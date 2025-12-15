@@ -44,7 +44,7 @@ export class AuditService {
     });
   }
 
-  async enrollment(userId: string, sectionId: string, action: 'ENROLLED' | 'DROPPED' | 'WAITLISTED') {
+  async enrollment(userId: string, sectionId: string, action: string) {
     await this.record({
       userId,
       action,

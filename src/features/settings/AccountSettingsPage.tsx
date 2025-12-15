@@ -3,9 +3,12 @@ import { Card } from '../../components/common/Card';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { Eye } from 'lucide-react';
 
 export function AccountSettingsPage() {
   const { profile, updatePassword } = useAuth();
+  const { theme, fontSize, setTheme, setFontSize } = useTheme();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,15 +57,52 @@ export function AccountSettingsPage() {
 
       {message && (
         <div
-          className={`rounded-lg px-4 py-3 ${
-            message.type === 'success'
-              ? 'bg-green-50 border border-green-200 text-green-800'
-              : 'bg-red-50 border border-red-200 text-red-800'
-          }`}
+          className={`rounded-lg px-4 py-3 ${message.type === 'success'
+            ? 'bg-green-50 border border-green-200 text-green-800'
+            : 'bg-red-50 border border-red-200 text-red-800'
+            }`}
         >
           {message.text}
         </div>
       )}
+
+      <Card title="Appearance">
+        <div className="space-y-4">
+          {/* Theme Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Theme
+            </label>
+            <select
+              value={theme}
+              onChange={(e) => setTheme(e.target.value as any)}
+              className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            >
+              <option value="light">Light</option>
+              <option value="high-contrast">High Contrast</option>
+              <option value="dark">Dark</option>
+              <option value="colorblind-deuteranopia">Colorblind (Deuteranopia)</option>
+              <option value="colorblind-protanopia">Colorblind (Protanopia)</option>
+            </select>
+          </div>
+
+          {/* Font Size */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Font Size
+            </label>
+            <select
+              value={fontSize}
+              onChange={(e) => setFontSize(e.target.value as any)}
+              className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            >
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+        </div>
+      </Card>
 
       <Card title="Change Password">
         <form className="space-y-4 max-w-md" onSubmit={handlePasswordUpdate}>

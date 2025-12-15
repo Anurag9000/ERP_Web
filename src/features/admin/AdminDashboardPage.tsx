@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Card } from '../../components/common/Card';
 import { supabase } from '../../lib/supabase';
-import { Users, BookOpen, Layers, Activity, AlertTriangle, CalendarClock } from 'lucide-react';
+import { Users, BookOpen, Layers, Activity, AlertTriangle, CalendarClock, UserPlus } from 'lucide-react';
+import { Button } from '../../components/common/Button';
+import { EnrollmentOverrideModal } from './EnrollmentOverrideModal';
 
 interface AdminStats {
   users: number;
@@ -27,10 +29,12 @@ export function AdminDashboardPage() {
   });
   const [maintenance, setMaintenance] = useState<MaintenanceWindow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showOverrideModal, setShowOverrideModal] = useState(false);
+  const [showOverrideSuccess, setShowOverrideSuccess] = useState(false); // simple trigger to reload dashboard
 
   useEffect(() => {
     loadDashboard();
-  }, []);
+  }, [showOverrideSuccess]);
 
   async function loadDashboard() {
     try {
@@ -73,7 +77,13 @@ export function AdminDashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Admin Control Center</h1>
-        <p className="text-gray-600 mt-1">System-wide snapshot of people, catalog, and operations</p>
+        <div className="flex justify-between items-start">
+          <p className="text-gray-600 mt-1">System-wide snapshot of people, catalog, and operations</p>
+          <Button onClick={() => setShowOverrideModal(true)} variant="outline" size="sm">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Force Enrollment
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -143,9 +153,8 @@ export function AdminDashboardPage() {
                       </p>
                     </div>
                     <span
-                      className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                        window.is_active ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-700'
-                      }`}
+                      className={`text-xs font-semibold px-3 py-1 rounded-full ${window.is_active ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-700'
+                        }`}
                     >
                       {window.is_active ? 'Active' : 'Scheduled'}
                     </span>
@@ -179,6 +188,18 @@ export function AdminDashboardPage() {
           </div>
         </Card>
       </div>
-    </div>
+
+
+      {
+        showOverrideModal && (
+          <EnrollmentOverrideModal
+            onClose={() => setShowOverrideModal(false)}
+            onSuccess={() => {
+              setShowOverrideSuccess(prev => !prev);
+            }}
+          />
+        )
+      }
+    </div >
   );
 }
