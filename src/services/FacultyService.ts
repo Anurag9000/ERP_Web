@@ -144,10 +144,41 @@ export class FacultyService {
     }
 
     /**
-     * Determine current status based on office hours
+     * Determine current status and location based on teaching schedule
+     */
+    async getCurrentStatus(instructorId: string): Promise<{ status: string; location?: string }> {
+        const now = new Date();
+        const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+        const currentDay = days[now.getDay()];
+        const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS
+
+        const { data: section, error } = await supabase
+            .from('sections')
+            .select(`
+                id,
+                rooms (code, name),
+                courses (name)
+            `)
+            .eq('instructor_id', instructorId)
+            .contains('schedule_days', [currentDay])
+            .lte('start_time', currentTime)
+            .gte('end_time', currentTime)
+            .single();
+
+        if (error || !section) {
+            return { status: 'AVAILABLE' };
+        }
+
+        return {
+            status: 'IN_CLASS',
+            location: section.rooms ? `${section.rooms.code} (${section.courses?.name})` : 'Unknown Room'
+        };
+    }
+
+    /**
+     * Determine current status based on office hours (simplified for list view)
      */
     private determineStatus(officeHours: string): 'AVAILABLE' | 'IN_CLASS' | 'IN_MEETING' | 'UNAVAILABLE' {
-        // Simplified logic - would check against current time and schedule
         const now = new Date();
         const hour = now.getHours();
 

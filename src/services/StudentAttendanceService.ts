@@ -17,7 +17,7 @@ export class StudentAttendanceService {
         let query = supabase
             .from('attendance_records')
             .select(`
-        present,
+        status,
         enrollments!inner (
           id,
           sections!inner (
@@ -60,7 +60,7 @@ export class StudentAttendanceService {
 
             const stats = courseMap.get(key)!;
             stats.total++;
-            if (record.present) stats.attended++;
+            if (record.status === 'PRESENT' || record.status === 'LATE') stats.attended++;
         });
 
         // Convert to array with status

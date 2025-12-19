@@ -10,7 +10,8 @@ interface TermGpa {
 export interface GpaTrendPoint {
   term: string;
   credits: number;
-  gpa: number;
+  sgpa: number; // Term GPA
+  cgpa: number; // Cumulative GPA at that point
 }
 
 export type StudentStanding = 'NEW' | 'GOOD' | 'WARNING' | 'PROBATION';
@@ -21,7 +22,7 @@ export interface StandingSnapshot {
 }
 
 export interface StudentAnalytics {
-  currentGpa: number;
+  cgpa: number; // Current Cumulative GPA
   totalCredits: number;
   trend: GpaTrendPoint[];
   atRisk: boolean;
@@ -85,28 +86,29 @@ export class AnalyticsService {
       trend.push({
         term: entry.term_name,
         credits: entry.credits,
-        gpa: entry.credits > 0 ? Number((entry.grade_points / entry.credits).toFixed(2)) : 0,
+        sgpa: entry.credits > 0 ? Number((entry.grade_points / entry.credits).toFixed(2)) : 0,
+        cgpa: totalCredits > 0 ? Number((totalGradePoints / totalCredits).toFixed(2)) : 0,
       });
     });
 
-    const currentGpa = totalCredits > 0 ? Number((totalGradePoints / totalCredits).toFixed(2)) : 0;
+    const cgpa = totalCredits > 0 ? Number((totalGradePoints / totalCredits).toFixed(2)) : 0;
     const trendDelta =
-      trend.length > 1 ? Number((trend[trend.length - 1].gpa - trend[trend.length - 2].gpa).toFixed(2)) : 0;
+      trend.length > 1 ? Number((trend[trend.length - 1].sgpa - trend[trend.length - 2].sgpa).toFixed(2)) : 0;
 
     const bestTerm = trend.reduce<StandingSnapshot | undefined>((best, point) => {
-      if (!best || point.gpa > best.gpa) return { term: point.term, gpa: point.gpa };
+      if (!best || point.sgpa > best.gpa) return { term: point.term, gpa: point.sgpa };
       return best;
     }, undefined);
     const worstTerm = trend.reduce<StandingSnapshot | undefined>((worst, point) => {
-      if (!worst || point.gpa < worst.gpa) return { term: point.term, gpa: point.gpa };
+      if (!worst || point.sgpa < worst.gpa) return { term: point.term, gpa: point.sgpa };
       return worst;
     }, undefined);
 
-    const { standing, probationReasons } = this.calculateStanding(currentGpa, trendDelta, totalCredits);
+    const { standing, probationReasons } = this.calculateStanding(cgpa, trendDelta, totalCredits);
     const atRisk = standing === 'WARNING' || standing === 'PROBATION';
 
     return {
-      currentGpa,
+      cgpa,
       totalCredits,
       trend,
       atRisk,

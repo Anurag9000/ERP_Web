@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --pastel-gray-bg: #F3F4F6;
+  --pastel-gray-text: #374151;
+  --pastel-green-bg: #ECFDF5;
+  --pastel-green-text: #065F46;
+  --pastel-yellow-bg: #FFFBEB;
+  --pastel-yellow-text: #92400E;
+  --pastel-red-bg: #FEF2F2;
+  --pastel-red-text: #991B1B;
+  --pastel-blue-bg: #EFF6FF;
+  --pastel-blue-text: #1E40AF;
+}

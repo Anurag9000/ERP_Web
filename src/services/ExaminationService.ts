@@ -171,4 +171,29 @@ export class ExaminationService {
             maxMarks: enrollment.grades?.reduce((sum: number, g: any) => sum + (g.assessments?.max_marks || 0), 0) || 100
         }));
     }
+
+    /**
+     * Get syllabus for registered courses in a term
+     */
+    async getSyllabus(studentId: string, termId: string) {
+        const { data, error } = await supabase
+            .from('enrollments')
+            .select(`
+                sections!inner (
+                    term_id,
+                    courses (code, name, description)
+                )
+            `)
+            .eq('student_id', studentId)
+            .eq('sections.term_id', termId)
+            .eq('status', 'ACTIVE');
+
+        if (error) throw error;
+
+        return (data || []).map((enrollment: any) => ({
+            courseCode: enrollment.sections?.courses?.code || '',
+            courseName: enrollment.sections?.courses?.name || '',
+            syllabus: enrollment.sections?.courses?.description || 'No syllabus available.'
+        }));
+    }
 }

@@ -38,9 +38,10 @@ export class EnhancedAttendanceService {
                 const { error } = await supabase
                     .from('attendance_records')
                     .upsert({
-                        enrollment_id: enrollment.id,
-                        date: date.toISOString().split('T')[0],
-                        present: status
+                        section_id: sectionId,
+                        student_id: enrollment.student_id,
+                        attendance_date: date.toISOString().split('T')[0],
+                        status: status ? 'PRESENT' : 'ABSENT'
                     });
 
                 if (!error) marked++;
@@ -63,8 +64,8 @@ export class EnhancedAttendanceService {
         let query = supabase
             .from('attendance_records')
             .select(`
-        present,
-        date,
+        status,
+        attendance_date,
         enrollments!inner (
           section_id,
           student_id,
@@ -74,18 +75,18 @@ export class EnhancedAttendanceService {
             .eq('enrollments.section_id', sectionId);
 
         if (startDate) {
-            query = query.gte('date', startDate.toISOString().split('T')[0]);
+            query = query.gte('attendance_date', startDate.toISOString().split('T')[0]);
         }
         if (endDate) {
-            query = query.lte('date', endDate.toISOString().split('T')[0]);
+            query = query.lte('attendance_date', endDate.toISOString().split('T')[0]);
         }
 
         const { data, error } = await query;
         if (error) throw error;
 
-        const totalClasses = new Set((data || []).map((r: any) => r.date)).size;
-        const totalPresent = (data || []).filter((r: any) => r.present).length;
-        const totalAbsent = (data || []).filter((r: any) => !r.present).length;
+        const totalClasses = new Set((data || []).map((r: any) => r.attendance_date)).size;
+        const totalPresent = (data || []).filter((r: any) => r.status === 'PRESENT' || r.status === 'LATE').length;
+        const totalAbsent = (data || []).filter((r: any) => r.status === 'ABSENT').length;
 
         // Calculate per-student attendance
         const studentAttendance = new Map<string, { present: number; total: number; name: string }>();
@@ -102,7 +103,7 @@ export class EnhancedAttendanceService {
 
             const stats = studentAttendance.get(studentId)!;
             stats.total++;
-            if (record.present) stats.present++;
+            if (record.status === 'PRESENT' || record.status === 'LATE') stats.present++;
         });
 
         // Find low attendance students (< 75%)
@@ -146,13 +147,13 @@ export class EnhancedAttendanceService {
         )
       `)
             .eq('enrollments.section_id', sectionId)
-            .order('date', { ascending: true });
+            .order('attendance_date', { ascending: true });
 
         if (startDate) {
-            query = query.gte('date', startDate.toISOString().split('T')[0]);
+            query = query.gte('attendance_date', startDate.toISOString().split('T')[0]);
         }
         if (endDate) {
-            query = query.lte('date', endDate.toISOString().split('T')[0]);
+            query = query.lte('attendance_date', endDate.toISOString().split('T')[0]);
         }
 
         const { data, error } = await query;
@@ -163,7 +164,8 @@ export class EnhancedAttendanceService {
 
         (data || []).forEach((record: any) => {
             const profile = record.enrollments?.user_profiles;
-            csv += `${record.date},${profile?.student_id},"${profile?.first_name} ${profile?.last_name}",${record.present ? 'Present' : 'Absent'}\n`;
+            const isPresent = record.status === 'PRESENT' || record.status === 'LATE';
+            csv += `${record.attendance_date},${profile?.student_id},"${profile?.first_name} ${profile?.last_name}",${isPresent ? 'Present' : 'Absent'}\n`;
         });
 
         return csv;

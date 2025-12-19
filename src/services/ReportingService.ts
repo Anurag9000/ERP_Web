@@ -214,7 +214,7 @@ export class ReportingService {
         courses (code),
         enrollments!inner (
           student_id,
-          attendance_records (present)
+          attendance_records (status)
         )
       `)
             .eq('is_active', true);
@@ -236,7 +236,7 @@ export class ReportingService {
             enrollments.forEach((enrollment: any) => {
                 const records = enrollment.attendance_records || [];
                 const totalClasses = records.length;
-                const presentCount = records.filter((r: any) => r.present).length;
+                const presentCount = records.filter((r: any) => r.status === 'PRESENT' || r.status === 'LATE').length;
 
                 const attendanceRate = totalClasses > 0 ? (presentCount / totalClasses) * 100 : 0;
                 totalAttendanceRate += attendanceRate;

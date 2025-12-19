@@ -14,6 +14,7 @@ import {
   UserCheck,
   BookMarked,
   MessageSquare,
+  Map,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';

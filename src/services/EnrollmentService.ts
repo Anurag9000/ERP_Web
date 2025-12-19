@@ -656,4 +656,13 @@ export class EnrollmentService {
     const rows = (data as { credits: number | null }[] | null) ?? [];
     return rows.reduce((total, course) => total + (course.credits ?? 0), 0);
   }
+
+  private toSchedule(section: RegistrationSection): SectionSchedule {
+    return {
+      schedule_days: section.schedule_days,
+      start_time: section.start_time,
+      end_time: section.end_time,
+      rooms: section.rooms,
+    };
+  }
 }

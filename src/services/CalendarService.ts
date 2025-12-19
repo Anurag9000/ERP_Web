@@ -93,15 +93,25 @@ export class CalendarService {
 
         if (assessError) throw assessError;
 
-        // 2. Fetch Personal Calendar Events
-        const { data: personal, error: calError } = await supabase
+        // 2. Fetch Personal and Opted-in Public Events
+        const { data: participants, error: partError } = await supabase
+            .from('event_participants')
+            .select('event_id')
+            .eq('user_id', studentId)
+            .eq('status', 'ACCEPTED');
+
+        if (partError) throw partError;
+        const optedInIds = (participants || []).map(p => p.event_id);
+
+        let query = supabase
             .from('calendar_events')
             .select('*')
-            .or(`organizer_id.eq.${studentId}, is_public.eq.true`)
+            .or(`organizer_id.eq.${studentId},id.in.(${optedInIds.join(',')})`)
             .gt('start_time', new Date().toISOString())
             .order('start_time', { ascending: true })
-            .limit(10);
+            .limit(20);
 
+        const { data: personal, error: calError } = await query;
         if (calError) throw calError;
 
         const events: CalendarEvent[] = [];
@@ -137,5 +147,33 @@ export class CalendarService {
         });
 
         return events.sort((a, b) => a.start.getTime() - b.start.getTime());
+    }
+
+    /**
+     * Opt-in or opt-out of a public event
+     */
+    async toggleEventOptIn(userId: string, eventId: string, optIn: boolean): Promise<{ success: boolean; error?: string }> {
+        try {
+            if (optIn) {
+                const { error } = await supabase
+                    .from('event_participants')
+                    .upsert({
+                        event_id: eventId,
+                        user_id: userId,
+                        status: 'ACCEPTED'
+                    });
+                if (error) throw error;
+            } else {
+                const { error } = await supabase
+                    .from('event_participants')
+                    .delete()
+                    .eq('event_id', eventId)
+                    .eq('user_id', userId);
+                if (error) throw error;
+            }
+            return { success: true };
+        } catch (error: any) {
+            return { success: false, error: error.message };
+        }
     }
 }
