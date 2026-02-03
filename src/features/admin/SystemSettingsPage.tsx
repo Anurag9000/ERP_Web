@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { Loader2, AlertTriangle, CalendarClock } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { useMaintenance } from '../../contexts/MaintenanceContext';
 import { services } from '../../services/serviceLocator';
 
@@ -43,12 +43,12 @@ export function SystemSettingsPage() {
     setMessage(null);
     try {
       const [{ data: setting }, { data: windowRows }] = await Promise.all([
-        supabase.from('system_settings').select('value').eq('key', 'maintenance_mode').maybeSingle(),
-        supabase
+        (supabase.from('system_settings').select('value').eq('key', 'maintenance_mode').maybeSingle() as any),
+        (supabase
           .from('maintenance_windows')
           .select('id, title, start_time, end_time, is_active')
           .order('start_time', { ascending: false })
-          .limit(5),
+          .limit(5) as any),
       ]);
 
       setMaintenanceEnabled(setting?.value === 'true');
@@ -70,9 +70,9 @@ export function SystemSettingsPage() {
     setMessage(null);
     try {
       const next = !maintenanceEnabled;
-      const { error } = await supabase
+      const { error } = await (supabase
         .from('system_settings')
-        .upsert({ key: 'maintenance_mode', value: next ? 'true' : 'false' });
+        .upsert({ key: 'maintenance_mode', value: next ? 'true' : 'false' } as any) as any);
       if (error) throw error;
       setMaintenanceEnabled(next);
       if (profile?.id) {
@@ -107,7 +107,7 @@ export function SystemSettingsPage() {
         is_active: true,
         created_by: profile?.id || '',
       };
-      const { data, error } = await supabase.from('maintenance_windows').insert(payload).select('id').single();
+      const { data, error } = await (supabase.from('maintenance_windows').insert(payload as any).select('id').single() as any);
       if (error) throw error;
       if (profile?.id && data?.id) {
         await services.auditService.maintenanceWindow(profile.id, data.id);
@@ -218,9 +218,8 @@ export function SystemSettingsPage() {
                   </p>
                 </div>
                 <span
-                  className={`px-2 py-1 rounded-full text-xs ${
-                    window.is_active ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
-                  }`}
+                  className={`px-2 py-1 rounded-full text-xs ${window.is_active ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
+                    }`}
                 >
                   {window.is_active ? 'Active' : 'Completed'}
                 </span>

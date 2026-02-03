@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '../../components/common/Card';
 import { Select } from '../../components/common/Select';
 import { services } from '../../services/serviceLocator';
-import { TrendingUp, Users, DollarSign, AlertTriangle, BarChart3 } from 'lucide-react';
+import { TrendingUp, Users, AlertTriangle, BarChart3 } from 'lucide-react';
 import {
     BarChart,
     Bar,
@@ -190,9 +190,9 @@ export function ReportsPage() {
                                 cx="50%"
                                 cy="50%"
                                 outerRadius={100}
-                                label={(entry) => `${entry.department}: ${entry.utilizationRate.toFixed(0)}%`}
+                                label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`}
                             >
-                                {enrollmentTrends.slice(0, 5).map((entry, index) => (
+                                {enrollmentTrends.slice(0, 5).map((_entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
@@ -224,10 +224,10 @@ export function ReportsPage() {
                                         <td className="px-4 py-3 text-sm text-gray-900 text-right">{item.waitlisted}</td>
                                         <td className="px-4 py-3 text-right">
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.pressureScore > 2
-                                                    ? 'bg-red-100 text-red-800'
-                                                    : item.pressureScore > 1
-                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                        : 'bg-green-100 text-green-800'
+                                                ? 'bg-red-100 text-red-800'
+                                                : item.pressureScore > 1
+                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                    : 'bg-green-100 text-green-800'
                                                 }`}>
                                                 {item.pressureScore.toFixed(1)}x
                                             </span>
@@ -296,10 +296,10 @@ export function ReportsPage() {
                                     <td className="px-4 py-3 text-sm text-gray-900 text-right">{item.totalStudents}</td>
                                     <td className="px-4 py-3 text-right">
                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.averageAttendance >= 75
-                                                ? 'bg-green-100 text-green-800'
-                                                : item.averageAttendance >= 60
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : 'bg-red-100 text-red-800'
+                                            ? 'bg-green-100 text-green-800'
+                                            : item.averageAttendance >= 60
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : 'bg-red-100 text-red-800'
                                             }`}>
                                             {item.averageAttendance.toFixed(1)}%
                                         </span>

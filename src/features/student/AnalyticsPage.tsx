@@ -4,7 +4,7 @@ import { Card } from '../../components/common/Card';
 import { Loader2, TrendingUp, AlertTriangle, ArrowDownRight, ArrowUpRight, Activity, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { services } from '../../services/serviceLocator';
-import type { GpaTrendPoint, StudentAnalytics, StudentStanding } from '../../services/AnalyticsService';
+import type { GpaTrendPoint, StudentAnalytics, StudentStanding, StandingSnapshot } from '../../services/AnalyticsService';
 
 const standingStyles: Record<
   StudentStanding,
@@ -114,7 +114,7 @@ export function AnalyticsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Current GPA</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{analytics.currentGpa.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-1">{analytics.cgpa.toFixed(2)}</p>
               {analytics.trend.length > 1 && (
                 <div className={`mt-2 inline-flex items-center text-sm ${trendPositive ? 'text-green-600' : 'text-red-600'}`}>
                   {trendPositive ? <ArrowUpRight className="w-4 h-4 mr-1" /> : <ArrowDownRight className="w-4 h-4 mr-1" />}
@@ -157,7 +157,7 @@ export function AnalyticsPage() {
               {analytics.trend.map((point) => (
                 <div key={point.term} className="p-3 rounded-lg bg-gray-50">
                   <p className="text-xs text-gray-500 uppercase">{point.term}</p>
-                  <p className="text-lg font-semibold text-gray-900">{point.gpa.toFixed(2)}</p>
+                  <p className="text-lg font-semibold text-gray-900">{point.sgpa.toFixed(2)}</p>
                   <p className="text-xs text-gray-500">{point.credits} credits</p>
                 </div>
               ))}
@@ -219,7 +219,7 @@ export function AnalyticsPage() {
                     <tr key={`breakdown-${point.term}`}>
                       <td className="px-4 py-2">{point.term}</td>
                       <td className="px-4 py-2">{point.credits}</td>
-                      <td className="px-4 py-2">{point.gpa.toFixed(2)}</td>
+                      <td className="px-4 py-2">{point.sgpa.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -240,7 +240,7 @@ function TrendSparkline({ data }: { data: GpaTrendPoint[] }) {
   const viewBoxWidth = Math.max(data.length - 1, 1) * 100 + 80;
   const viewBoxHeight = 200;
   const margin = 24;
-  const gpas = data.map((point) => point.gpa);
+  const gpas = data.map((point) => point.sgpa);
   const minGpa = Math.min(...gpas, 0);
   const maxGpa = Math.max(...gpas, 4);
   const range = Math.max(maxGpa - minGpa, 0.5);
@@ -251,11 +251,10 @@ function TrendSparkline({ data }: { data: GpaTrendPoint[] }) {
     viewBoxHeight - margin - ((value - minGpa) / range) * (viewBoxHeight - margin * 2);
 
   const linePath = data
-    .map((point, index) => `${index === 0 ? 'M' : 'L'}${xScale(index)},${yScale(point.gpa)}`)
+    .map((point, index) => `${index === 0 ? 'M' : 'L'}${xScale(index)},${yScale(point.sgpa)}`)
     .join(' ');
-  const areaPath = `${linePath} L ${xScale(data.length - 1)} ${viewBoxHeight - margin} L ${xScale(0)} ${
-    viewBoxHeight - margin
-  } Z`;
+  const areaPath = `${linePath} L ${xScale(data.length - 1)} ${viewBoxHeight - margin} L ${xScale(0)} ${viewBoxHeight - margin
+    } Z`;
 
   return (
     <div>
@@ -283,7 +282,7 @@ function TrendSparkline({ data }: { data: GpaTrendPoint[] }) {
 
         {data.map((point, index) => (
           <g key={`point-${point.term}`}>
-            <circle cx={xScale(index)} cy={yScale(point.gpa)} r={5} fill="#4F46E5" stroke="#fff" strokeWidth={2} />
+            <circle cx={xScale(index)} cy={yScale(point.sgpa)} r={5} fill="#4F46E5" stroke="#fff" strokeWidth={2} />
             <text x={xScale(index)} y={viewBoxHeight - margin / 2} textAnchor="middle" fontSize="11" fill="#6B7280">
               {point.term}
             </text>
@@ -313,18 +312,20 @@ function HighlightCard({
 }: {
   title: string;
   icon: ReactNode;
-  data?: { term: string; gpa: number };
+  data?: GpaTrendPoint | StandingSnapshot | null;
   emptyLabel: string;
 }) {
+  const gpa = data ? ('sgpa' in data ? data.sgpa : (data as any).gpa) : null;
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <div className="flex items-center space-x-2">
         {icon}
         <p className="text-sm font-semibold text-gray-700">{title}</p>
       </div>
-      {data ? (
+      {data && typeof gpa === 'number' ? (
         <>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{data.gpa.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-2">{gpa.toFixed(2)}</p>
           <p className="text-sm text-gray-500">Term: {data.term}</p>
         </>
       ) : (

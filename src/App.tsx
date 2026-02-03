@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { MainLayout } from './components/layout/MainLayout';
@@ -14,6 +14,7 @@ import { TranscriptPage } from './features/student/TranscriptPage';
 import { TimetablePage } from './features/student/TimetablePage';
 import { AnalyticsPage } from './features/student/AnalyticsPage';
 import { FinancePage } from './features/student/FinancePage';
+import { CalendarPage } from './features/student/CalendarPage';
 import { GradebookPage } from './features/instructor/GradebookPage';
 import { AttendancePage } from './features/instructor/AttendancePage';
 import { MessagingPage } from './features/instructor/MessagingPage';
@@ -40,8 +41,9 @@ import { GoogleClassroomIntegrationPage } from './features/integrations/GoogleCl
 import { BroadcastAnnouncementPage } from './features/admin/BroadcastAnnouncementPage';
 import { MaintenanceProvider } from './contexts/MaintenanceContext';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) {
+  const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -53,6 +55,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (profile?.must_change_password && location.pathname !== '/account') {
+    return <Navigate to="/account" state={{ forced: true }} replace />;
   }
 
   return <MainLayout>{children}</MainLayout>;
@@ -172,10 +182,7 @@ function App() {
                 path="/calendar"
                 element={
                   <ProtectedRoute>
-                    <div className="text-center py-12">
-                      <h1 className="text-2xl font-bold text-gray-900">Smart Calendar</h1>
-                      <p className="text-gray-600 mt-2">View and manage your calendar</p>
-                    </div>
+                    <CalendarPage />
                   </ProtectedRoute>
                 }
               />
@@ -244,7 +251,7 @@ function App() {
                 }
               />
               <Route
-                path="/admin/planner"
+                path="/admin/section-planner"
                 element={
                   <ProtectedRoute>
                     <SectionPlannerPage />
@@ -326,7 +333,7 @@ function App() {
               <Route
                 path="/analytics/students"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['ADMIN', 'ADVISOR']}>
                     <StudentAnalyticsPage />
                   </ProtectedRoute>
                 }

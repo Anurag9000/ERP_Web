@@ -1,0 +1,51 @@
+﻿
+> vite-react-typescript-starter@0.0.0 typecheck
+> tsc --noEmit -p tsconfig.app.json
+
+src/contexts/ThemeContext.test.tsx(2,32): error TS6133: 'vi' is declared but its value is never read.
+src/features/admin/BroadcastAnnouncementPage.tsx(14,11): error TS6133: 'profile' is declared but its value is never read.
+src/features/admin/CourseManagementPage.tsx(65,71): error TS2339: Property 'id' does not exist on type 'never'.
+src/features/admin/CourseManagementPage.tsx(95,63): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "courses", never, "POST">', gave the following error.
+    Argument of type '{ code: string; name: string; department_id: string; credits: number; level: string; is_active: boolean; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "courses", never, "POST">', gave the following error.
+    Argument of type '{ code: string; name: string; department_id: string; credits: number; level: string; is_active: boolean; }' is not assignable to parameter of type 'never[]'.
+      Type '{ code: string; name: string; department_id: string; credits: number; level: string; is_active: boolean; }' is missing the following properties from type 'never[]': length, pop, push, concat, and 28 more.
+src/features/admin/CourseManagementPage.tsx(116,63): error TS2345: Argument of type '{ is_active: boolean; }' is not assignable to parameter of type 'never'.
+src/features/admin/ReportsPage.tsx(5,29): error TS6133: 'DollarSign' is declared but its value is never read.
+src/features/admin/ReportsPage.tsx(193,60): error TS2339: Property 'department' does not exist on type 'PieLabelRenderProps'.
+src/features/admin/ReportsPage.tsx(193,81): error TS2339: Property 'utilizationRate' does not exist on type 'PieLabelRenderProps'.
+src/features/admin/ReportsPage.tsx(195,68): error TS6133: 'entry' is declared but its value is never read.
+src/features/admin/SectionManagementPage.tsx(139,65): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/features/admin/UserManagementPage.tsx(151,70): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/features/analytics/StudentAnalyticsPage.tsx(3,1): error TS6133: 'Button' is declared but its value is never read.
+src/features/instructor/MessagingPage.tsx(1,21): error TS6133: 'useMemo' is declared but its value is never read.
+src/features/instructor/MessagingPage.tsx(12,23): error TS6133: 'Mail' is declared but its value is never read.
+src/features/instructor/MessagingPage.tsx(12,29): error TS6133: 'MessageSquare' is declared but its value is never read.
+src/features/notifications/NotificationsPage.tsx(120,19): error TS2339: Property 'category' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(121,26): error TS2339: Property 'category' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(122,25): error TS2339: Property 'enabled' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(123,33): error TS2339: Property 'delivery_method' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(143,10): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ user_id: string; category: string; enabled: boolean; delivery_method: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.
+src/features/notifications/NotificationsPage.tsx(159,25): error TS2339: Property 'enabled' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(160,33): error TS2339: Property 'delivery_method' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(196,17): error TS2345: Argument of type '{ is_read: boolean; read_at: string; }' is not assignable to parameter of type 'never'.
+src/features/notifications/NotificationsPage.tsx(221,17): error TS2345: Argument of type '{ is_read: boolean; read_at: string; }' is not assignable to parameter of type 'never'.
+src/features/settings/AccountSettingsPage.tsx(7,1): error TS6133: 'Eye' is declared but its value is never read.
+src/features/settings/NotificationSettingsPage.tsx(4,1): error TS6133: 'services' is declared but its value is never read.
+src/features/settings/NotificationSettingsPage.tsx(23,11): error TS6133: 'user' is declared but its value is never read.
+src/features/student/AnalyticsPage.tsx(117,79): error TS2339: Property 'currentGpa' does not exist on type 'StudentAnalytics'.
+src/features/student/AnalyticsPage.tsx(160,77): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/AnalyticsPage.tsx(222,56): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/AnalyticsPage.tsx(243,42): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/AnalyticsPage.tsx(254,87): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/AnalyticsPage.tsx(286,57): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/ExaminationPage.tsx(12,5): error TS6133: 'Clock' is declared but its value is never read.
+src/features/student/ExaminationPage.tsx(169,21): error TS2322: Type '{ children: Element; title: string; action: any; }' is not assignable to type 'IntrinsicAttributes & CardProps'.
+  Property 'action' does not exist on type 'IntrinsicAttributes & CardProps'.
+src/services/ExaminationService.ts(32,27): error TS6133: 'form' is declared but its value is never read.
+src/services/ReportingService.ts(45,9): error TS6133: 'departmentId' is declared but its value is never read.

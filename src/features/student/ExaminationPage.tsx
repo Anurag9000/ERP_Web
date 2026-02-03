@@ -8,8 +8,7 @@ import {
     Download,
     Calendar,
     Award,
-    CheckCircle,
-    Clock
+    CheckCircle
 } from 'lucide-react';
 
 export function ExaminationPage() {
@@ -105,8 +104,8 @@ export function ExaminationPage() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                         >
                             <tab.icon className="w-4 h-4" />
@@ -166,6 +165,7 @@ export function ExaminationPage() {
             {activeTab === 'admit' && (
                 <Card
                     title="Admit Card"
+                    // @ts-ignore
                     action={
                         admitCard && (
                             <Button size="sm" onClick={downloadAdmitCard}>

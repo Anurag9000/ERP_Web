@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
 import { services } from '../../services/serviceLocator';
 import {
     TrendingUp,
@@ -35,29 +34,18 @@ export function StudentAnalyticsPage() {
     async function loadAnalytics() {
         setLoading(true);
         try {
-            // Mock data - would come from analytics service
+            const [metrics, distribution, trends] = await Promise.all([
+                services.analyticsService.fetchSystemWideMetrics(),
+                services.analyticsService.fetchGradeDistribution(),
+                services.analyticsService.fetchAttendanceTrends()
+            ]);
+
             setEnrollmentData([
-                { term: 'Fall 2023', enrolled: 450, capacity: 500 },
-                { term: 'Spring 2024', enrolled: 480, capacity: 500 },
-                { term: 'Fall 2024', enrolled: 495, capacity: 500 }
+                { term: 'Current', enrolled: metrics.totalStudents, capacity: metrics.totalStudents + 50 }
             ]);
-
-            setGradeDistribution([
-                { grade: 'A', count: 120 },
-                { grade: 'B', count: 180 },
-                { grade: 'C', count: 150 },
-                { grade: 'D', count: 30 },
-                { grade: 'F', count: 15 }
-            ]);
-
-            setAttendanceTrends([
-                { week: 'Week 1', attendance: 95 },
-                { week: 'Week 2', attendance: 92 },
-                { week: 'Week 3', attendance: 88 },
-                { week: 'Week 4', attendance: 85 },
-                { week: 'Week 5', attendance: 87 },
-                { week: 'Week 6', attendance: 90 }
-            ]);
+            setGradeDistribution(distribution);
+            setAttendanceTrends(trends);
+            // We could also store metrics in state if needed for the summary cards
         } catch (error) {
             console.error('Error loading analytics:', error);
         } finally {

@@ -109,7 +109,7 @@ export function UserManagementPage() {
     }
     try {
       setSavingId('create');
-      const { error } = await supabase.from('user_profiles').insert({
+      const { error } = await (supabase.from('user_profiles') as any).insert({
         id: newUserForm.authUserId,
         first_name: newUserForm.firstName,
         last_name: newUserForm.lastName,
@@ -121,15 +121,15 @@ export function UserManagementPage() {
       });
       if (error) throw error;
       await services.auditService.record({
-        userId: profile?.id || null,
+        user_id: profile?.id || null,
         action: 'USER_CREATED',
-        entityType: 'USER',
-        entityId: newUserForm.authUserId,
-        newValues: {
+        entity_type: 'USER',
+        entity_id: newUserForm.authUserId,
+        new_values: {
           email: newUserForm.email,
           role: newUserForm.role,
         },
-      });
+      } as any);
       setMessage('User profile created.');
       setNewUserForm({ authUserId: '', firstName: '', lastName: '', email: '', role: 'STUDENT', departmentId: '' });
       await loadData();
@@ -148,15 +148,15 @@ export function UserManagementPage() {
     }
     try {
       setSavingId(userId);
-      const { error } = await supabase.from('user_profiles').update(payload).eq('id', userId);
+      const { error } = await (supabase.from('user_profiles') as any).update(payload).eq('id', userId);
       if (error) throw error;
       await services.auditService.record({
-        userId: profile?.id || null,
+        user_id: profile?.id || null,
         action: auditAction,
-        entityType: 'USER',
-        entityId: userId,
-        newValues: payload,
-      });
+        entity_type: 'USER',
+        entity_id: userId,
+        new_values: payload,
+      } as any);
       setMessage('User updated.');
       await loadData();
     } catch (error) {
@@ -297,7 +297,7 @@ export function UserManagementPage() {
                       value={user.role}
                       className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
                       disabled={savingId === user.id || !canWrite}
-                      onChange={(e) => updateUser(user.id, { role: e.target.value as UserRole }, 'ROLE_UPDATED'))
+                      onChange={(e) => updateUser(user.id, { role: e.target.value as UserRole }, 'ROLE_UPDATED')}
                     >
                       {roleOptions.map((role) => (
                         <option key={role} value={role}>

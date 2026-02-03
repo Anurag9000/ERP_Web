@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
+import { useAuth } from '../../contexts/AuthContext';
 import { services } from '../../services/serviceLocator';
 import {
     Megaphone,
@@ -10,6 +11,7 @@ import {
 } from 'lucide-react';
 
 export function BroadcastAnnouncementPage() {
+    useAuth();
     const [title, setTitle] = useState('');
     const [message, setMessage] = useState('');
     const [category, setCategory] = useState<'ACADEMIC' | 'EVENT' | 'CLUB' | 'DEPARTMENT' | 'GENERAL'>('GENERAL');
@@ -83,8 +85,8 @@ export function BroadcastAnnouncementPage() {
                     {result && (
                         <div
                             className={`rounded-lg px-4 py-3 ${result.type === 'success'
-                                    ? 'bg-green-50 border border-green-200 text-green-800'
-                                    : 'bg-red-50 border border-red-200 text-red-800'
+                                ? 'bg-green-50 border border-green-200 text-green-800'
+                                : 'bg-red-50 border border-red-200 text-red-800'
                                 }`}
                         >
                             {result.text}
@@ -236,8 +238,8 @@ export function BroadcastAnnouncementPage() {
                             <Megaphone className="w-5 h-5 text-blue-600" />
                             <h3 className="font-semibold text-gray-900">{title || 'Announcement Title'}</h3>
                             <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${priority === 'HIGH' ? 'bg-red-100 text-red-800' :
-                                    priority === 'NORMAL' ? 'bg-blue-100 text-blue-800' :
-                                        'bg-gray-100 text-gray-800'
+                                priority === 'NORMAL' ? 'bg-blue-100 text-blue-800' :
+                                    'bg-gray-100 text-gray-800'
                                 }`}>
                                 {priority}
                             </span>

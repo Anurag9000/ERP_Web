@@ -120,9 +120,9 @@ export function GradebookPage() {
       setGradeMap((prev) => ({
         ...prev,
         [key]: {
-          id: data.id,
+          id: (data as any).id,
           marks,
-          status: data.status || 'GRADED',
+          status: (data as any).status || 'GRADED',
         },
       }));
       setMessage('Grade saved.');
@@ -133,19 +133,21 @@ export function GradebookPage() {
   }
 
   function calculateWeightedScore(studentId: string) {
-    const totalWeight = assessments.reduce((sum, assessment) => sum + assessment.weight, 0);
-    if (totalWeight === 0) return 0;
+    let earnedPoints = 0;
+    let totalpossibleWeight = 0;
 
-    const weighted = assessments.reduce((sum, assessment) => {
+    assessments.forEach((assessment) => {
       const key = gradeKey(studentId, assessment.id);
       const grade = gradeMap[key];
-      if (!grade || grade.marks === null || assessment.max_marks === 0) {
-        return sum;
-      }
-      return sum + (grade.marks / assessment.max_marks) * assessment.weight;
-    }, 0);
 
-    return Math.round((weighted / totalWeight) * 100);
+      if (grade && grade.marks !== null && assessment.max_marks > 0) {
+        earnedPoints += (grade.marks / assessment.max_marks) * assessment.weight;
+        totalpossibleWeight += assessment.weight;
+      }
+    });
+
+    if (totalpossibleWeight === 0) return 0;
+    return Math.round((earnedPoints / totalpossibleWeight) * 100);
   }
 
   const summaryStats = useMemo(() => {
@@ -155,9 +157,9 @@ export function GradebookPage() {
     const averageWeighted =
       students.length > 0
         ? Math.round(
-            students.reduce((sum, student) => sum + calculateWeightedScore(student.student_id), 0) /
-              students.length
-          )
+          students.reduce((sum, student) => sum + calculateWeightedScore(student.student_id), 0) /
+          students.length
+        )
         : 0;
     return {
       completionRate,
@@ -255,7 +257,7 @@ export function GradebookPage() {
         return;
       }
 
-      await services.gradebookService.importGrades(selectedSection, user.id, validEntries);
+      await services.gradebookService.importGrades(selectedSection, user!.id, validEntries);
       setMessage(`Imported ${validEntries.length} grade rows.`);
       await loadSectionData(selectedSection);
     } catch (error) {

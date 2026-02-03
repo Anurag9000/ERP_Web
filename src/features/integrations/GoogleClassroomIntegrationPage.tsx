@@ -12,22 +12,30 @@ import {
 } from 'lucide-react';
 
 export function GoogleClassroomIntegrationPage() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authenticated, setAuthenticated] = useState(false);
     const [googleCourses, setGoogleCourses] = useState<any[]>([]);
     const [erpCourses, setErpCourses] = useState<any[]>([]);
+    const [mappings, setMappings] = useState<Record<string, string>>({}); // GoogleCourseID -> ERPCourseID
     const [loading, setLoading] = useState(false);
     const [syncing, setSyncing] = useState(false);
 
     useEffect(() => {
+        loadStatus();
         loadErpCourses();
     }, []);
 
+    async function loadStatus() {
+        // Check if user has active google integration
+        // This would involve calling a service to check DB for mappings
+    }
+
     async function loadErpCourses() {
-        // Load ERP courses - would use actual service
-        setErpCourses([
-            { id: '1', code: 'CS101', name: 'Introduction to Computer Science' },
-            { id: '2', code: 'CS201', name: 'Data Structures' }
-        ]);
+        try {
+            const data = await services.registrarService.fetchCourses();
+            setErpCourses(data || []);
+        } catch (error) {
+            console.error('Error loading courses:', error);
+        }
     }
 
     async function handleAuthenticate() {
@@ -35,7 +43,7 @@ export function GoogleClassroomIntegrationPage() {
         const result = await services.googleClassroomService.authenticate();
 
         if (result.success) {
-            setIsAuthenticated(true);
+            setAuthenticated(true);
             await loadGoogleCourses();
         }
         setLoading(false);
@@ -53,13 +61,23 @@ export function GoogleClassroomIntegrationPage() {
         }
     }
 
-    async function handleSyncCourse(googleCourseId: string, erpCourseId: string) {
+    async function handleSyncCourse(googleCourseId: string) {
+        const erpCourseId = mappings[googleCourseId];
+        if (!erpCourseId) {
+            alert('Please select an ERP course to map to');
+            return;
+        }
+
         setSyncing(true);
         const googleCourse = googleCourses.find(c => c.id === googleCourseId);
 
         if (googleCourse) {
-            await services.googleClassroomService.syncCourseToERP(googleCourse, erpCourseId);
-            alert('Course synced successfully!');
+            const result = await services.googleClassroomService.syncCourseToERP(googleCourse, erpCourseId);
+            if (result.success) {
+                alert('Course mapped and synced successfully!');
+            } else {
+                alert(`Sync failed: ${result.error}`);
+            }
         }
         setSyncing(false);
     }
@@ -82,7 +100,7 @@ export function GoogleClassroomIntegrationPage() {
             </div>
 
             {/* Authentication */}
-            {!isAuthenticated ? (
+            {!authenticated ? (
                 <Card>
                     <div className="text-center py-12">
                         <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -132,7 +150,11 @@ export function GoogleClassroomIntegrationPage() {
                                     </div>
 
                                     <div className="flex items-center gap-4">
-                                        <select className="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <select
+                                            value={mappings[googleCourse.id] || ''}
+                                            onChange={(e) => setMappings(prev => ({ ...prev, [googleCourse.id]: e.target.value }))}
+                                            className="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        >
                                             <option value="">Map to ERP course...</option>
                                             {erpCourses.map(course => (
                                                 <option key={course.id} value={course.id}>
@@ -140,10 +162,9 @@ export function GoogleClassroomIntegrationPage() {
                                                 </option>
                                             ))}
                                         </select>
-
                                         <Button
                                             size="sm"
-                                            onClick={() => handleSyncCourse(googleCourse.id, '1')}
+                                            onClick={() => handleSyncCourse(googleCourse.id)}
                                             disabled={syncing}
                                         >
                                             <LinkIcon className="w-4 h-4 mr-2" />
@@ -162,7 +183,17 @@ export function GoogleClassroomIntegrationPage() {
                                 <p className="text-sm text-gray-600">
                                     Import assignments from Google Classroom to your ERP courses
                                 </p>
-                                <Button className="w-full" onClick={() => handleImportAssignments('gc-course-1', '1')}>
+                                <Button
+                                    className="w-full"
+                                    onClick={() => {
+                                        const firstMapping = Object.entries(mappings)[0];
+                                        if (firstMapping) {
+                                            handleImportAssignments(firstMapping[0], firstMapping[1]);
+                                        } else {
+                                            alert('Please map a course first');
+                                        }
+                                    }}
+                                >
                                     <Download className="w-4 h-4 mr-2" />
                                     Import Assignments
                                 </Button>

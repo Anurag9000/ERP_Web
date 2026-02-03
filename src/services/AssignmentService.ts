@@ -80,11 +80,21 @@ export class AssignmentService {
             // In a real implementation, you would upload the file to storage
             // For now, we'll just record the submission
 
-            // Get enrollment ID
+            // Get assessment to find its section
+            const { data: assessment, error: assessmentError } = await supabase
+                .from('assessments')
+                .select('section_id')
+                .eq('id', assessmentId)
+                .single();
+
+            if (assessmentError) throw assessmentError;
+
+            // Get the specific enrollment for this section and student
             const { data: enrollment, error: enrollError } = await supabase
                 .from('enrollments')
-                .select('id, section_id')
+                .select('id')
                 .eq('student_id', studentId)
+                .eq('section_id', (assessment as any).section_id)
                 .single();
 
             if (enrollError) throw enrollError;
@@ -93,12 +103,12 @@ export class AssignmentService {
             const { error: gradeError } = await supabase
                 .from('grades')
                 .upsert({
-                    enrollment_id: enrollment.id,
+                    enrollment_id: (enrollment as any).id,
                     assessment_id: assessmentId,
                     submitted_at: new Date().toISOString(),
-                    // Store file name as placeholder
+                    // Store file name as reference
                     feedback: `Submitted: ${file.name}`
-                });
+                } as any);
 
             if (gradeError) throw gradeError;
 
@@ -132,8 +142,8 @@ export class AssignmentService {
         }
 
         return {
-            marksObtained: data?.marks_obtained,
-            feedback: data?.feedback
+            marksObtained: (data as any)?.marks_obtained,
+            feedback: (data as any)?.feedback
         };
     }
 

@@ -97,10 +97,10 @@ export function InstructorDashboardPage() {
       const [enrollmentCount, notificationsCount] = await Promise.all([
         sectionIds.length
           ? supabase
-              .from('enrollments')
-              .select('id', { count: 'exact', head: true })
-              .eq('status', 'ACTIVE')
-              .in('section_id', sectionIds)
+            .from('enrollments')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'ACTIVE')
+            .in('section_id', sectionIds)
           : Promise.resolve({ count: 0 } as { count: number | null }),
         supabase
           .from('notifications')
@@ -113,12 +113,20 @@ export function InstructorDashboardPage() {
       setStats({
         activeSections: resolvedSections.length,
         totalStudents: enrollmentCount?.count ?? 0,
-        gradingDue: resolvedSections.reduce(
-          (sum, section) => (section.enrolled_count < section.capacity ? sum + 1 : sum),
-          0
-        ),
+        gradingDue: 0,
         unreadNotifications: notificationsCount.count ?? 0,
       });
+
+      // Better: Count unique assessments with ungraded submissions
+      const { data: ungradedData } = await supabase
+        .from('grades')
+        .select('id', { count: 'exact', head: true })
+        .is('marks_obtained', null)
+        .in('assessments.section_id', sectionIds);
+
+      if (ungradedData) {
+        setStats(prev => ({ ...prev, gradingDue: (ungradedData as any).count ?? 0 }));
+      }
       await loadAnalytics(resolvedSections.map((section) => section.id));
     } catch (error) {
       console.error('Error loading instructor dashboard:', error);

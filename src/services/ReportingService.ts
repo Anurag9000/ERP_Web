@@ -44,8 +44,8 @@ export class ReportingService {
         termId?: string,
         departmentId?: string
     ): Promise<EnrollmentTrend[]> {
-        let query = supabase
-            .from('sections')
+        let query = (supabase
+            .from('sections') as any)
             .select(`
         id,
         capacity,
@@ -60,6 +60,10 @@ export class ReportingService {
 
         if (termId) {
             query = query.eq('term_id', termId);
+        }
+
+        if (departmentId) {
+            query = query.eq('courses.department_id', departmentId);
         }
 
         const { data, error } = await query;
@@ -123,7 +127,7 @@ export class ReportingService {
         const { data, error } = await query;
         if (error) throw error;
 
-        return (data || []).map((section: any) => {
+        return (data as any[] || []).map((section) => {
             const available = (section.capacity || 0) - (section.enrolled_count || 0);
             const waitlisted = section.waitlist_count || 0;
 
@@ -165,7 +169,7 @@ export class ReportingService {
         // Group by student
         const grouped = new Map<string, FinancialArrear>();
 
-        (data || []).forEach((fee: any) => {
+        (data as any[] || []).forEach((fee) => {
             const studentId = fee.user_profiles?.student_id || 'Unknown';
             const studentName = fee.user_profiles
                 ? `${fee.user_profiles.first_name} ${fee.user_profiles.last_name}`
@@ -226,7 +230,7 @@ export class ReportingService {
         const { data, error } = await query;
         if (error) throw error;
 
-        return (data || []).map((section: any) => {
+        return (data as any[] || []).map((section) => {
             const enrollments = section.enrollments || [];
             const totalStudents = enrollments.length;
 
@@ -277,7 +281,7 @@ export class ReportingService {
             sectionsCount: data?.length || 0
         };
 
-        (data || []).forEach((section: any) => {
+        (data as any[] || []).forEach((section) => {
             stats.totalCapacity += section.capacity || 0;
             stats.totalEnrolled += section.enrolled_count || 0;
             stats.totalWaitlisted += section.waitlist_count || 0;

@@ -21,11 +21,11 @@ export class AnnouncementService {
         categories?: string[]
     ): Promise<Announcement[]> {
         // Get user role
-        const { data: profile } = await supabase
+        const { data: profile } = await (supabase
             .from('user_profiles')
             .select('role')
             .eq('id', userId)
-            .single();
+            .single() as any);
 
         const userRole = profile?.role || 'STUDENT';
 
@@ -43,7 +43,7 @@ export class AnnouncementService {
         // Only show non-expired announcements
         query = query.or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
 
-        const { data, error } = await query;
+        const { data, error } = await (query as any);
         if (error) throw error;
 
         return (data || []).map((a: any) => ({
@@ -67,7 +67,7 @@ export class AnnouncementService {
         announcement: Omit<Announcement, 'id' | 'publishedAt' | 'createdBy'>
     ): Promise<{ success: boolean; error?: string }> {
         try {
-            const { error } = await supabase
+            const { error } = await (supabase
                 .from('announcements')
                 .insert({
                     title: announcement.title,
@@ -78,7 +78,7 @@ export class AnnouncementService {
                     expires_at: announcement.expiresAt?.toISOString(),
                     created_by: userId,
                     published_at: new Date().toISOString()
-                });
+                } as any) as any);
 
             if (error) throw error;
             return { success: true };
@@ -96,16 +96,16 @@ export class AnnouncementService {
     ): Promise<{ success: boolean; error?: string }> {
         try {
             // Get announcement details
-            const { data: announcement, error: fetchError } = await supabase
+            const { data: announcement, error: fetchError } = await (supabase
                 .from('announcements')
                 .select('*')
                 .eq('id', announcementId)
-                .single();
+                .single() as any);
 
             if (fetchError) throw fetchError;
 
             // Create calendar event
-            const { error: insertError } = await supabase
+            const { error: insertError } = await (supabase
                 .from('calendar_events')
                 .insert({
                     organizer_id: userId,
@@ -115,7 +115,7 @@ export class AnnouncementService {
                     end_time: announcement.expires_at || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
                     is_all_day: true,
                     color: 'blue'
-                });
+                } as any) as any);
 
             if (insertError) throw insertError;
             return { success: true };

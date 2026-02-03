@@ -1,0 +1,6 @@
+﻿
+> vite-react-typescript-starter@0.0.0 typecheck
+> tsc --noEmit -p tsconfig.app.json
+
+src/services/EnrollmentService.ts(506,17): error TS2345: Argument of type '{ status: string; promoted_at: string; }' is not assignable to parameter of type 'never'.
+src/services/EnrollmentService.ts(515,17): error TS2345: Argument of type '{ waitlist_count: number; }' is not assignable to parameter of type 'never'.

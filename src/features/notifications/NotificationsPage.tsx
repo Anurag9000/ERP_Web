@@ -109,14 +109,14 @@ export function NotificationsPage() {
   async function loadPreferences() {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from('notification_preferences')
+      const { data, error } = await (supabase
+        .from('notification_preferences') as any)
         .select('*')
         .eq('user_id', user.id)
         .in('category', ['SYSTEM', 'MAINTENANCE', 'DIGEST']);
       if (error) throw error;
       const next: Record<string, NotificationPreference> = {};
-      data?.forEach((pref) => {
+      (data as any[])?.forEach((pref) => {
         next[pref.category] = {
           category: pref.category,
           enabled: pref.enabled,
@@ -138,8 +138,8 @@ export function NotificationsPage() {
         enabled: updates.enabled ?? previous?.enabled ?? true,
         delivery_method: updates.delivery_method ?? previous?.delivery_method ?? 'IN_APP',
       };
-      const { data, error } = await supabase
-        .from('notification_preferences')
+      const { data, error } = await (supabase
+        .from('notification_preferences') as any)
         .upsert(
           {
             user_id: user.id,
@@ -156,8 +156,8 @@ export function NotificationsPage() {
         ...prev,
         [category]: {
           category,
-          enabled: data.enabled,
-          delivery_method: data.delivery_method,
+          enabled: (data as any).enabled,
+          delivery_method: (data as any).delivery_method,
         },
       }));
     } catch (error) {
@@ -191,8 +191,8 @@ export function NotificationsPage() {
 
   async function markAsRead(notificationId: string) {
     try {
-      const { error } = await supabase
-        .from('notifications')
+      const { error } = await (supabase
+        .from('notifications') as any)
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq('id', notificationId);
 
@@ -216,8 +216,8 @@ export function NotificationsPage() {
 
       if (unreadIds.length === 0) return;
 
-      const { error } = await supabase
-        .from('notifications')
+      const { error } = await (supabase
+        .from('notifications') as any)
         .update({ is_read: true, read_at: new Date().toISOString() })
         .in('id', unreadIds);
 
@@ -295,11 +295,10 @@ export function NotificationsPage() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  selectedCategory === category
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedCategory === category
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 {category}
               </button>
@@ -483,9 +482,8 @@ export function NotificationsPage() {
           filteredNotifications.map((notification) => (
             <Card
               key={notification.id}
-              className={`transition-colors ${
-                notification.is_read ? 'bg-white' : 'bg-blue-50'
-              }`}
+              className={`transition-colors ${notification.is_read ? 'bg-white' : 'bg-blue-50'
+                }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

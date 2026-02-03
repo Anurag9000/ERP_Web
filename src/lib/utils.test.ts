@@ -51,8 +51,16 @@ describe('utils', () => {
     describe('calculateGPA', () => {
         it('calculates average weighted by credits', () => {
             const grades = [
-                { credits: 3, gradePoints: 4 },
-                { credits: 4, gradePoints: 3 },
+                {
+                    status: 'COMPLETED',
+                    sections: { courses: { credits: 3 } },
+                    grade_points: 4
+                },
+                {
+                    status: 'COMPLETED',
+                    sections: { courses: { credits: 4 } },
+                    grade_points: 3
+                },
             ];
             // (3*4 + 4*3) / 7 = 24 / 7 = 3.428...
             expect(calculateGPA(grades)).toBeCloseTo(3.43, 2);

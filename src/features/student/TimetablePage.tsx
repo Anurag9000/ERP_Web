@@ -109,7 +109,6 @@ export function TimetablePage() {
   }, [user]);
 
   async function loadData() {
-    // ... (same as before)
     setLoading(true);
     setMessage(null);
     try {
@@ -117,7 +116,8 @@ export function TimetablePage() {
         services.calendarService.fetchStudentSchedule(user!.id),
         services.calendarService.fetchUpcomingEvents(user!.id)
       ]);
-      setSections(scheduleData); // Fixed: assign scheduleData to sections
+      // The service already returns TimetableSection[] which maps to our sections state
+      setSections(scheduleData);
       setEvents(eventsData);
       setFreeSlots(findFreeSlots(scheduleData));
     } catch (error) {
@@ -167,7 +167,7 @@ export function TimetablePage() {
           durationMinutes,
           top: (startMinutes - timeline.minMinutes) * MINUTE_HEIGHT,
           height: Math.max(durationMinutes * MINUTE_HEIGHT, 56),
-        });
+        } as any);
       });
     });
     Object.values(grouped).forEach((entries) => entries.sort((a, b) => a.startMinutes - b.startMinutes));
@@ -192,7 +192,7 @@ export function TimetablePage() {
           endTime: end.toISOString(),
           location: section.room || 'TBA',
           description: `Section ${section.section_number}`,
-        };
+        } as any;
       })
     );
     const ics = generateICS(icsEvents);

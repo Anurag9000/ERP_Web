@@ -51,4 +51,14 @@ export class RegistrarService {
     });
     if (error) throw error;
   }
+
+  async fetchCourses(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('courses')
+      .select('id, code, name')
+      .eq('is_active', true);
+
+    if (error) throw error;
+    return data || [];
+  }
 }

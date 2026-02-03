@@ -1,0 +1,16 @@
+﻿
+> vite-react-typescript-starter@0.0.0 typecheck
+> tsc --noEmit -p tsconfig.app.json
+
+src/contexts/ThemeContext.test.tsx(2,32): error TS6133: 'vi' is declared but its value is never read.
+src/features/admin/BroadcastAnnouncementPage.tsx(14,11): error TS6133: 'profile' is declared but its value is never read.
+src/features/analytics/StudentAnalyticsPage.tsx(3,1): error TS6133: 'Button' is declared but its value is never read.
+src/features/instructor/MessagingPage.tsx(1,21): error TS6133: 'useMemo' is declared but its value is never read.
+src/features/instructor/MessagingPage.tsx(12,23): error TS6133: 'Mail' is declared but its value is never read.
+src/features/instructor/MessagingPage.tsx(12,29): error TS6133: 'MessageSquare' is declared but its value is never read.
+src/features/settings/AccountSettingsPage.tsx(7,1): error TS6133: 'Eye' is declared but its value is never read.
+src/features/settings/NotificationSettingsPage.tsx(4,1): error TS6133: 'services' is declared but its value is never read.
+src/features/settings/NotificationSettingsPage.tsx(23,11): error TS6133: 'user' is declared but its value is never read.
+src/features/student/AnalyticsPage.tsx(243,42): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/services/ExaminationService.ts(32,27): error TS6133: 'form' is declared but its value is never read.
+src/services/ReportingService.ts(45,9): error TS6133: 'departmentId' is declared but its value is never read.

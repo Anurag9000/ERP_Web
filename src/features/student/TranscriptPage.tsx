@@ -432,7 +432,6 @@ export function TranscriptPage() {
       </Card>
     </div>
   );
-}
   function downloadCertificate(type: 'ENROLLMENT' | 'STANDING') {
     if (!user) return;
     const windowTitle = type === 'ENROLLMENT' ? 'Enrollment Verification' : 'Certificate of Good Standing';
@@ -513,3 +512,4 @@ export function TranscriptPage() {
     READY: 'bg-emerald-50 text-emerald-700',
     CLOSED: 'bg-gray-100 text-gray-700',
   };
+}

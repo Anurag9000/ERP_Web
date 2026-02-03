@@ -29,8 +29,8 @@ export class ExaminationService {
      */
     async submitExamForm(studentId: string, termId: string): Promise<{ success: boolean; error?: string }> {
         try {
-            const { error } = await supabase
-                .from('exam_forms')
+            const { error: formError } = await (supabase
+                .from('exam_forms') as any)
                 .insert({
                     student_id: studentId,
                     term_id: termId,
@@ -38,7 +38,7 @@ export class ExaminationService {
                     submitted_at: new Date().toISOString()
                 });
 
-            if (error) throw error;
+            if (formError) throw formError;
             return { success: true };
         } catch (error: any) {
             return { success: false, error: error.message };
@@ -51,8 +51,8 @@ export class ExaminationService {
     async generateAdmitCard(studentId: string, termId: string): Promise<AdmitCard | null> {
         try {
             // Get student info
-            const { data: student, error: studentError } = await supabase
-                .from('user_profiles')
+            const { data: student, error: studentError } = await (supabase
+                .from('user_profiles') as any)
                 .select('student_id, first_name, last_name')
                 .eq('id', studentId)
                 .single();
@@ -60,8 +60,8 @@ export class ExaminationService {
             if (studentError) throw studentError;
 
             // Get enrolled courses with exam schedules
-            const { data: enrollments, error: enrollError } = await supabase
-                .from('enrollments')
+            const { data: enrollments, error: enrollError } = await (supabase
+                .from('enrollments') as any)
                 .select(`
           sections (
             courses (code, name),
@@ -112,8 +112,8 @@ export class ExaminationService {
      * Get exam datesheet for a term
      */
     async getDatesheet(termId: string) {
-        const { data, error } = await supabase
-            .from('assessments')
+        const { data, error } = await (supabase
+            .from('assessments') as any)
             .select(`
         id,
         name,
@@ -143,8 +143,8 @@ export class ExaminationService {
      * Get marksheet for student
      */
     async getMarksheet(studentId: string, termId: string) {
-        const { data, error } = await supabase
-            .from('enrollments')
+        const { data, error } = await (supabase
+            .from('enrollments') as any)
             .select(`
         grade,
         sections!inner (
@@ -162,13 +162,13 @@ export class ExaminationService {
 
         if (error) throw error;
 
-        return (data || []).map((enrollment: any) => ({
+        return (data as any[] || []).map((enrollment) => ({
             courseCode: enrollment.sections?.courses?.code || '',
             courseName: enrollment.sections?.courses?.name || '',
             credits: enrollment.sections?.courses?.credits || 0,
             grade: enrollment.grade || 'N/A',
-            marks: enrollment.grades?.reduce((sum: number, g: any) => sum + (g.marks_obtained || 0), 0) || 0,
-            maxMarks: enrollment.grades?.reduce((sum: number, g: any) => sum + (g.assessments?.max_marks || 0), 0) || 100
+            marks: (enrollment.grades as any[])?.reduce((sum: number, g: any) => sum + (g.marks_obtained || 0), 0) || 0,
+            maxMarks: (enrollment.grades as any[])?.reduce((sum: number, g: any) => sum + (g.assessments?.max_marks || 0), 0) || 100
         }));
     }
 
@@ -176,8 +176,8 @@ export class ExaminationService {
      * Get syllabus for registered courses in a term
      */
     async getSyllabus(studentId: string, termId: string) {
-        const { data, error } = await supabase
-            .from('enrollments')
+        const { data, error } = await (supabase
+            .from('enrollments') as any)
             .select(`
                 sections!inner (
                     term_id,

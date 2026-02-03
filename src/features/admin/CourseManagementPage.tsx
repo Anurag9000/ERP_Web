@@ -62,7 +62,7 @@ export function CourseManagementPage() {
       if (courseResp.error) throw courseResp.error;
       setDepartments(deptResp.data || []);
       setCourses((courseResp.data as CourseRow[]) || []);
-      setForm((prev) => ({ ...prev, departmentId: deptResp.data?.[0]?.id || '' }));
+      setForm((prev) => ({ ...prev, departmentId: (deptResp.data as any)?.[0]?.id || '' }));
     } catch (error) {
       console.error('Error loading courses:', error);
       setMessage('Unable to load course catalog.');
@@ -92,7 +92,7 @@ export function CourseManagementPage() {
         level: form.level,
         is_active: true,
       };
-      const { error } = await supabase.from('courses').insert(payload);
+      const { error } = await (supabase.from('courses') as any).insert(payload);
       if (error) throw error;
       setMessage('Course created.');
       setForm((prev) => ({ ...prev, code: '', name: '' }));
@@ -113,7 +113,7 @@ export function CourseManagementPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const { error } = await supabase.from('courses').update({ is_active: active }).eq('id', courseId);
+      const { error } = await (supabase.from('courses') as any).update({ is_active: active }).eq('id', courseId);
       if (error) throw error;
       await loadData();
     } catch (error) {
@@ -235,9 +235,8 @@ export function CourseManagementPage() {
                   <td className="px-4 py-3">{course.level}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        course.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs ${course.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
+                        }`}
                     >
                       {course.is_active ? 'Active' : 'Inactive'}
                     </span>

@@ -50,10 +50,21 @@ export function getDayAbbreviation(day: string): string {
   return abbreviations[day] || day;
 }
 
-export function calculateGPA(grades: Array<{ credits: number; gradePoints: number }>): number {
-  const totalCredits = grades.reduce((sum, g) => sum + g.credits, 0);
-  const totalPoints = grades.reduce((sum, g) => sum + g.credits * g.gradePoints, 0);
-  return totalCredits > 0 ? totalPoints / totalCredits : 0;
+export function calculateGPA(enrollments: any[]): number {
+  const completed = (enrollments || []).filter((e) => e.status === 'COMPLETED');
+  if (!completed.length) return 0;
+
+  let totalPoints = 0;
+  let totalCredits = 0;
+
+  completed.forEach((e) => {
+    const credits = (e as any).sections?.courses?.credits || 0;
+    const gradePoints = (e as any).grade_points || 0;
+    totalPoints += credits * gradePoints;
+    totalCredits += credits;
+  });
+
+  return totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : 0;
 }
 
 export function getLetterGrade(percentage: number): string {

@@ -117,8 +117,8 @@ export function SectionManagementPage() {
       setInstructors(instructorResp.data || []);
       setForm((prev) => ({
         ...prev,
-        courseId: courseResp.data?.[0]?.id || '',
-        termId: termResp.data?.[0]?.id || '',
+        courseId: (courseResp.data?.[0] as any)?.id || '',
+        termId: (termResp.data?.[0] as any)?.id || '',
       }));
     } catch (error) {
       console.error('Error loading sections:', error);
@@ -136,7 +136,7 @@ export function SectionManagementPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const { error } = await supabase.from('sections').update({ instructor_id: instructorId }).eq('id', sectionId);
+      const { error } = await (supabase.from('sections') as any).update({ instructor_id: instructorId }).eq('id', sectionId);
       if (error) throw error;
       await loadData();
       setMessage('Instructor assigned.');
@@ -175,7 +175,7 @@ export function SectionManagementPage() {
         is_active: true,
       };
 
-      const { error } = await supabase.from('sections').insert(payload);
+      const { error } = await (supabase.from('sections').insert(payload as any) as any);
       if (error) throw error;
       setMessage('Section created.');
       setForm((prev) => ({ ...prev, sectionNumber: '', capacity: 30 }));

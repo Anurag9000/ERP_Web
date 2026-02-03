@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
-import { services } from '../../services/serviceLocator';
 import { Bell, BellOff } from 'lucide-react';
 
 const CATEGORIES = [
@@ -20,7 +19,7 @@ const DIGEST_FREQUENCIES = [
 ];
 
 export function NotificationSettingsPage() {
-    const { user } = useAuth();
+    useAuth();
     const [preferences, setPreferences] = useState<{ [key: string]: boolean }>({});
     const [digestFrequency, setDigestFrequency] = useState('instant');
     const [emailEnabled, setEmailEnabled] = useState(true);

@@ -1,9 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { Badge } from '../../components/common/Badge';
 import { useAuth } from '../../contexts/AuthContext';
 import { services } from '../../services/serviceLocator';
 import { RegistrationSection } from '../../services/EnrollmentService';
@@ -32,19 +30,6 @@ export function EnrollmentOverrideModal({ onClose, onSuccess }: EnrollmentOverri
     useEffect(() => {
         if (!searchTerm || searchTerm.length < 3) return;
         const delay = setTimeout(async () => {
-            const { data } = await supabase
-                .from('sections')
-                .select(`
-          *,
-          courses(id, code, name, credits, level, departments(code, name)),
-          rooms(code, name),
-          terms(id, name, code, drop_deadline)
-        `)
-                .textSearch('courses.code', searchTerm) // Simplistic text search, potentially broken OOTB, using simpler filter below
-                .limit(10);
-
-            // Fallback manual filter if textSearch isn't configured
-            // Re-fetch all active sections? Too heavy. Let's try explicit like
             const { data: fallbackData } = await supabase
                 .from('sections')
                 .select(`
@@ -53,7 +38,7 @@ export function EnrollmentOverrideModal({ onClose, onSuccess }: EnrollmentOverri
             rooms(code, name),
             terms(id, name, code, drop_deadline)
         `)
-                .filter('courses.code', 'ilike', `%${searchTerm}%`)
+                .ilike('courses.code', `%${searchTerm}%`)
                 .limit(10);
 
             if (fallbackData) setSections(fallbackData as any);

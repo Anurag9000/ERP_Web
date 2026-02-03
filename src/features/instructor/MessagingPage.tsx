@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
@@ -9,7 +9,7 @@ import type {
   MessagingStudent,
   SectionMessage,
 } from '../../services/InstructorMessagingService';
-import { Send, Users, Mail, MessageSquare } from 'lucide-react';
+import { Send, Users } from 'lucide-react';
 
 export function MessagingPage() {
   const { user } = useAuth();
@@ -254,9 +254,8 @@ export function MessagingPage() {
                           <p className="text-xs text-gray-500">{recipient.student?.email}</p>
                         </div>
                         <span
-                          className={`text-xs font-semibold ${
-                            recipient.status === 'READ' ? 'text-green-600' : 'text-gray-500'
-                          }`}
+                          className={`text-xs font-semibold ${recipient.status === 'READ' ? 'text-green-600' : 'text-gray-500'
+                            }`}
                         >
                           {recipient.status}
                         </span>

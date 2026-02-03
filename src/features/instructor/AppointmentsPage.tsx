@@ -82,7 +82,7 @@ export function AppointmentsPage() {
                                             <div>
                                                 <h3 className="font-semibold text-gray-900">{appointment.studentName}</h3>
                                                 <p className="text-sm text-gray-600">
-                                                    Requested: {appointment.createdAt.toLocaleDateString()}
+                                                    Requested: {new Date(appointment.createdAt).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
@@ -91,7 +91,7 @@ export function AppointmentsPage() {
                                             <div className="flex items-center gap-2 text-gray-700">
                                                 <Calendar className="w-4 h-4" />
                                                 <span className="font-medium">
-                                                    {appointment.requestedDate.toLocaleDateString()} at {appointment.requestedTime}
+                                                    {new Date(appointment.requestedDate).toLocaleDateString()} at {appointment.requestedTime}
                                                 </span>
                                             </div>
                                             <div className="flex items-start gap-2 text-gray-700">
@@ -143,7 +143,7 @@ export function AppointmentsPage() {
                                             <div>
                                                 <h3 className="font-semibold text-gray-900">{appointment.studentName}</h3>
                                                 <p className="text-sm text-gray-600">
-                                                    {appointment.requestedDate.toLocaleDateString()} at {appointment.requestedTime}
+                                                    {new Date(appointment.requestedDate).toLocaleDateString()} at {appointment.requestedTime}
                                                 </p>
                                             </div>
                                         </div>

@@ -19,7 +19,9 @@ describe('ExaminationService', () => {
     describe('submitExamForm', () => {
         it('should submit exam form successfully', async () => {
             const mockChain = {
-                insert: vi.fn().mockResolvedValue({ error: null })
+                insert: vi.fn().mockReturnThis(),
+                select: vi.fn().mockReturnThis(),
+                single: vi.fn().mockResolvedValue({ data: { id: 'f1' }, error: null })
             };
             (supabase.from as any).mockReturnValue(mockChain);
 

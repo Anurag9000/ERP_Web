@@ -4,7 +4,7 @@ import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Eye } from 'lucide-react';
+
 
 export function AccountSettingsPage() {
   const { profile, updatePassword } = useAuth();

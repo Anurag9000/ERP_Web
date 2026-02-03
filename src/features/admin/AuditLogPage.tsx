@@ -33,7 +33,7 @@ export function AuditLogPage() {
   async function loadLogs() {
     setLoading(true);
     try {
-      const query = supabase
+      let query = supabase
         .from('audit_logs')
         .select(
           `
@@ -50,9 +50,9 @@ export function AuditLogPage() {
         .limit(200);
 
       if (filter !== 'ALL') {
-        query.eq('entity_type', filter);
+        query = query.eq('entity_type', filter) as any;
       } else {
-        query.in('entity_type', trackedEntities);
+        query = query.in('entity_type', trackedEntities) as any;
       }
 
       const { data, error } = await query;

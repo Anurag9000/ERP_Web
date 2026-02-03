@@ -92,88 +92,82 @@ export class EnrollmentService {
     const [enrollmentResp, waitlistResp, sectionResp, departmentResp] = await Promise.all([
       supabase
         .from('enrollments')
-        .select(
-          `
+        .select(`
+          id,
+          status,
+          section_id,
+          enrolled_at,
+          sections (
             id,
+            section_number,
+            capacity,
+            enrolled_count,
+            waitlist_count,
+            schedule_days,
+            start_time,
+            end_time,
             status,
-            section_id,
-            enrolled_at,
-            sections (
-              id,
-              section_number,
-              capacity,
-              enrolled_count,
-              waitlist_count,
-              schedule_days,
-              start_time,
-              end_time,
-              status,
-              term_id,
-              courses (
-                id,
-                code,
-                name,
-                description,
-                credits,
-                level,
-                departments (code, name, color, id)
-              ),
-              rooms (code, name),
-              terms (id, name, code, drop_deadline)
-            )
-          `
-        )
-        .eq('student_id', studentId)
-        .neq('status', 'DROPPED')
-        .order('enrolled_at', { ascending: false }),
-      supabase
-        .from('waitlists')
-        .select(
-          `
-            id,
-            status,
-            position,
-            section_id,
-            sections(
-              id,
-              section_number,
-              capacity,
-              enrolled_count,
-              waitlist_count,
-              schedule_days,
-              start_time,
-              end_time,
-              status,
-              term_id,
-              courses(id, code, name, credits, level, departments(code, name, color, id)),
-              rooms(code, name),
-              terms(id, name, code, drop_deadline)
-            )
-          `
-        )
-        .eq('student_id', studentId)
-        .order('position', { ascending: true }),
-      supabase
-        .from('sections')
-        .select(
-          `
-            *,
-            courses(
+            term_id,
+            courses (
               id,
               code,
               name,
               description,
               credits,
               level,
-              departments(code, name, color, id)
+              departments (code, name, id)
             ),
+            rooms (code, name),
+            terms (id, name, code, drop_deadline)
+          )
+        `)
+        .eq('student_id', studentId)
+        .neq('status', 'DROPPED')
+        .order('enrolled_at', { ascending: false }),
+      supabase
+        .from('waitlists')
+        .select(`
+          id,
+          status,
+          position,
+          section_id,
+          sections(
+            id,
+            section_number,
+            capacity,
+            enrolled_count,
+            waitlist_count,
+            schedule_days,
+            start_time,
+            end_time,
+            status,
+            term_id,
+            courses(id, code, name, credits, level, departments(code, name, id)),
             rooms(code, name),
             terms(id, name, code, drop_deadline)
-          `
-        )
+          )
+        `)
+        .eq('student_id', studentId)
+        .order('position', { ascending: true }),
+      supabase
+        .from('sections')
+        .select(`
+          *,
+          courses(
+            id,
+            code,
+            name,
+            description,
+            credits,
+            level,
+            departments(code, name, id)
+          ),
+          rooms(code, name),
+          terms(id, name, code, drop_deadline)
+        `)
         .eq('is_active', true)
         .order('courses(code)'),
-      supabase.from('departments').select('*').eq('is_active', true).order('name'),
+      supabase.from('departments').select('id, code, name').eq('is_active', true).order('name'),
     ]);
 
     if (enrollmentResp.error) throw enrollmentResp.error;
@@ -182,10 +176,10 @@ export class EnrollmentService {
     if (departmentResp.error) throw departmentResp.error;
 
     return {
-      enrollments: (enrollmentResp.data as RegistrationEnrollment[]) || [],
-      waitlists: (waitlistResp.data as RegistrationWaitlist[]) || [],
-      sections: (sectionResp.data as RegistrationSection[]) || [],
-      departments: departmentResp.data || [],
+      enrollments: (enrollmentResp.data as unknown as RegistrationEnrollment[]) || [],
+      waitlists: (waitlistResp.data as unknown as RegistrationWaitlist[]) || [],
+      sections: (sectionResp.data as unknown as RegistrationSection[]) || [],
+      departments: (departmentResp.data as unknown as RegistrationDepartment[]) || [],
     };
   }
 
@@ -205,37 +199,36 @@ export class EnrollmentService {
     const hasSeat = section.status === 'OPEN' && section.enrolled_count < section.capacity;
 
     if (hasSeat) {
-      const { error } = await supabase.from('enrollments').insert({
+      const { error } = await (supabase.from('enrollments') as any).insert({
         student_id: studentId,
         section_id: section.id,
         term_id: section.term_id,
         status: 'ACTIVE',
       });
       if (error) throw error;
-      await supabase
-        .from('sections')
+
+      await (supabase.from('sections') as any)
         .update({ enrolled_count: section.enrolled_count + 1 })
         .eq('id', section.id);
       await this.audit.enrollment(studentId, section.id, 'ENROLLED');
       return { status: 'ENROLLED' as const };
     }
 
-    const { count } = await supabase
-      .from('waitlists')
+    const { count } = await (supabase.from('waitlists') as any)
       .select('id', { count: 'exact', head: true })
       .eq('section_id', section.id)
       .eq('term_id', section.term_id);
 
-    const { error } = await supabase.from('waitlists').insert({
+    const { error: waitlistError } = await (supabase.from('waitlists') as any).insert({
       student_id: studentId,
       section_id: section.id,
       term_id: section.term_id,
       position: (count ?? 0) + 1,
       status: 'WAITING',
     });
-    if (error) throw error;
-    await supabase
-      .from('sections')
+    if (waitlistError) throw waitlistError;
+
+    await (supabase.from('sections') as any)
       .update({ waitlist_count: section.waitlist_count + 1 })
       .eq('id', section.id);
     await this.audit.enrollment(studentId, section.id, 'WAITLISTED');
@@ -244,30 +237,30 @@ export class EnrollmentService {
 
   async forceEnroll(studentId: string, section: RegistrationSection, adminId: string, reason: string) {
     // 1. Check if already enrolled
-    const { data: existing } = await supabase
-      .from('enrollments')
+    const { data: existing } = await (supabase
+      .from('enrollments') as any)
       .select('id, status')
       .eq('student_id', studentId)
       .eq('section_id', section.id)
       .maybeSingle();
 
-    if (existing && existing.status === 'ACTIVE') {
+    if (existing && (existing as any).status === 'ACTIVE') {
       throw new Error('Student is already enrolled in this section.');
     }
 
     // 2. Insert or Update Enrollment
     if (existing) {
       // Re-activate if dropped or waitlisted
-      const { error } = await supabase
-        .from('enrollments')
+      const { error } = await (supabase
+        .from('enrollments') as any)
         .update({
           status: 'ACTIVE',
           enrolled_at: new Date().toISOString(),
         })
-        .eq('id', existing.id);
+        .eq('id', (existing as any).id);
       if (error) throw error;
     } else {
-      const { error } = await supabase.from('enrollments').insert({
+      const { error } = await (supabase.from('enrollments') as any).insert({
         student_id: studentId,
         section_id: section.id,
         term_id: section.term_id,
@@ -277,12 +270,11 @@ export class EnrollmentService {
     }
 
     // 3. Remove from Waitlist if exists
-    await supabase.from('waitlists').delete().eq('section_id', section.id).eq('student_id', studentId);
+    await (supabase.from('waitlists') as any).delete().eq('section_id', section.id).eq('student_id', studentId);
 
     // 4. Update Section Counts
     // We intentionally do NOT check capacity here.
-    const { error: countError } = await supabase
-      .from('sections')
+    const { error: countError } = await (supabase.from('sections') as any)
       .update({ enrolled_count: section.enrolled_count + 1 })
       .eq('id', section.id);
 
@@ -290,29 +282,24 @@ export class EnrollmentService {
 
     // 5. Audit Log (Special Override Type)
     await this.audit.record({
-      userId: adminId,
+      user_id: adminId,
       action: 'OVERRIDE_ENROLL',
-      entityType: 'ENROLLMENT',
-      entityId: section.id,
-      details: { studentId, reason },
-    });
+      entity_type: 'ENROLLMENT',
+      entity_id: section.id,
+      new_values: { studentId, reason },
+    } as any);
 
     return { status: 'ENROLLED', override: true };
   }
 
   async dropEnrollment(studentId: string, enrollment: RegistrationEnrollment) {
-    const { error } = await supabase
-      .from('enrollments')
-      .update({
-        status: 'DROPPED',
-        dropped_at: new Date().toISOString(),
-      })
+    const { error } = await (supabase.from('enrollments') as any)
+      .update({ status: 'DROPPED' })
       .eq('id', enrollment.id)
       .eq('student_id', studentId);
     if (error) throw error;
     if (enrollment.sections) {
-      await supabase
-        .from('sections')
+      await (supabase.from('sections') as any)
         .update({ enrolled_count: Math.max(enrollment.sections.enrolled_count - 1, 0) })
         .eq('id', enrollment.section_id);
     }
@@ -323,20 +310,19 @@ export class EnrollmentService {
   }
 
   async removeFromWaitlist(studentId: string, entry: RegistrationWaitlist) {
-    const { error } = await supabase.from('waitlists').delete().eq('id', entry.id).eq('student_id', studentId);
+    const { error } = await (supabase.from('waitlists') as any).delete().eq('id', entry.id).eq('student_id', studentId);
     if (error) throw error;
     if (entry.sections) {
-      await supabase
-        .from('sections')
+      await (supabase.from('sections') as any)
         .update({ waitlist_count: Math.max(entry.sections.waitlist_count - 1, 0) })
         .eq('id', entry.section_id);
     }
     await this.audit.record({
-      userId: studentId,
+      user_id: studentId,
       action: 'WAITLIST_REMOVED',
-      entityType: 'ENROLLMENT',
-      entityId: entry.section_id,
-    });
+      entity_type: 'ENROLLMENT',
+      entity_id: entry.section_id,
+    } as any);
   }
 
   private async ensureCourseRequirements(
@@ -346,11 +332,11 @@ export class EnrollmentService {
     completedCourseIds: Set<string>
   ) {
     const [prereqResp, coreqResp, antireqResp, courseResp, profileResp] = await Promise.all([
-      supabase.from('course_prerequisites').select('prerequisite_id').eq('course_id', courseId),
-      supabase.from('course_corequisites').select('corequisite_id').eq('course_id', courseId),
-      supabase.from('course_antirequisites').select('antirequisite_id').eq('course_id', courseId),
-      supabase
-        .from('courses')
+      (supabase.from('course_prerequisites') as any).select('prerequisite_id').eq('course_id', courseId),
+      (supabase.from('course_corequisites') as any).select('corequisite_id').eq('course_id', courseId),
+      (supabase.from('course_antirequisites') as any).select('antirequisite_id').eq('course_id', courseId),
+      (supabase
+        .from('courses') as any)
         .select(
           `
             id,
@@ -364,7 +350,7 @@ export class EnrollmentService {
         )
         .eq('id', courseId)
         .maybeSingle(),
-      supabase.from('user_profiles').select('id, department_id').eq('id', studentId).maybeSingle(),
+      (supabase.from('user_profiles') as any).select('id, department_id').eq('id', studentId).maybeSingle(),
     ]);
 
     if (prereqResp.error) throw prereqResp.error;
@@ -375,30 +361,30 @@ export class EnrollmentService {
 
     const prereqIds =
       prereqResp.data
-        ?.map((row: { prerequisite_id: string | null }) => row.prerequisite_id)
-        .filter((id): id is string => Boolean(id)) || [];
+        ?.map((row: any) => row.prerequisite_id)
+        .filter((id: any): id is string => Boolean(id)) || [];
 
     const coreqIds =
       coreqResp.data
-        ?.map((row: { corequisite_id: string | null }) => row.corequisite_id)
-        .filter((id): id is string => Boolean(id)) || [];
+        ?.map((row: any) => row.corequisite_id)
+        .filter((id: any): id is string => Boolean(id)) || [];
 
     const antireqIds =
       antireqResp.data
-        ?.map((row: { antirequisite_id: string | null }) => row.antirequisite_id)
-        .filter((id): id is string => Boolean(id)) || [];
+        ?.map((row: any) => row.antirequisite_id)
+        .filter((id: any): id is string => Boolean(id)) || [];
 
     const lookupIds = Array.from(new Set([...prereqIds, ...coreqIds, ...antireqIds]));
     const courseLookup = await this.fetchCourseCatalog(lookupIds);
 
-    const missingPrereqs = prereqIds.filter((id) => !completedCourseIds.has(id));
+    const missingPrereqs = prereqIds.filter((id: any) => !completedCourseIds.has(id));
     if (missingPrereqs.length) {
       throw new Error(
         `Missing prerequisites: ${this.formatCourseList(missingPrereqs, courseLookup)}. Complete these before enrolling.`
       );
     }
 
-    const missingCoreqs = coreqIds.filter((id) => !completedCourseIds.has(id) && !activePlusCurrent.has(id));
+    const missingCoreqs = coreqIds.filter((id: any) => !completedCourseIds.has(id) && !activePlusCurrent.has(id));
     if (missingCoreqs.length) {
       throw new Error(
         `Co-requisites required: ${this.formatCourseList(
@@ -408,7 +394,7 @@ export class EnrollmentService {
       );
     }
 
-    const blockedAntireqs = antireqIds.filter((id) => completedCourseIds.has(id) || activePlusCurrent.has(id));
+    const blockedAntireqs = antireqIds.filter((id: any) => completedCourseIds.has(id) || activePlusCurrent.has(id));
     if (blockedAntireqs.length) {
       throw new Error(
         `You cannot enroll because of anti-requisites: ${this.formatCourseList(
@@ -441,14 +427,14 @@ export class EnrollmentService {
   }
 
   private async promoteFromWaitlist(sectionId: string) {
-    const { data: section } = await supabase
-      .from('sections')
+    const { data: section, error: sectionError } = await ((supabase.from('sections') as any)
       .select(
         `
           id,
           course_id,
           term_id,
           enrolled_count,
+          capacity,
           waitlist_count,
           schedule_days,
           start_time,
@@ -457,23 +443,28 @@ export class EnrollmentService {
         `
       )
       .eq('id', sectionId)
-      .maybeSingle();
+      .maybeSingle() as any);
 
-    if (!section) return;
+    if (sectionError || !section) return;
 
-    const { data: candidates } = await supabase
-      .from('waitlists')
+    const availableSeats = section.capacity - section.enrolled_count;
+    if (availableSeats <= 0) return;
+
+    const { data: candidates, error: candidateError } = await ((supabase.from('waitlists') as any)
       .select('id, student_id')
       .eq('section_id', sectionId)
       .eq('status', 'WAITING')
       .order('position')
-      .limit(5);
+      .limit(availableSeats + 5) as any);
 
-    if (!candidates?.length) {
+    if (candidateError || !candidates?.length) {
       return;
     }
 
+    let promotedCount = 0;
     for (const candidate of candidates) {
+      if (promotedCount >= availableSeats) break;
+
       const current = await this.fetchStudentSchedules(candidate.student_id);
       if (this.hasConflict(section, current)) {
         continue;
@@ -495,38 +486,37 @@ export class EnrollmentService {
         continue;
       }
 
-      const { error } = await supabase.from('enrollments').insert({
+      const { error: enrollError } = await (supabase.from('enrollments') as any).insert({
         student_id: candidate.student_id,
         section_id: sectionId,
         term_id: section.term_id,
         status: 'ACTIVE',
       });
-      if (error) {
-        console.error('Failed to promote waitlist candidate', error);
+      if (enrollError) {
+        console.error('Failed to promote waitlist candidate', enrollError);
         continue;
       }
 
-      await supabase
-        .from('waitlists')
+      await (supabase
+        .from('waitlists') as any)
         .update({ status: 'PROMOTED', promoted_at: new Date().toISOString() })
         .eq('id', candidate.id);
 
-      await supabase
-        .from('sections')
+      promotedCount++;
+      await this.audit.enrollment(candidate.student_id, sectionId, 'PROMOTED');
+    }
+
+    if (promotedCount > 0) {
+      await (supabase.from('sections') as any)
         .update({
-          enrolled_count: section.enrolled_count + 1,
-          waitlist_count: Math.max(section.waitlist_count - 1, 0),
+          waitlist_count: Math.max((section.waitlist_count || 0) - promotedCount, 0),
         })
         .eq('id', sectionId);
-
-      await this.audit.enrollment(candidate.student_id, sectionId, 'PROMOTED');
-      break;
     }
   }
 
   private async fetchStudentSchedules(studentId: string): Promise<SectionSchedule[]> {
-    const { data } = await supabase
-      .from('enrollments')
+    const { data } = await ((supabase.from('enrollments') as any)
       .select(
         `
           sections(
@@ -538,12 +528,12 @@ export class EnrollmentService {
         `
       )
       .eq('student_id', studentId)
-      .eq('status', 'ACTIVE');
+      .eq('status', 'ACTIVE') as any);
 
     return (
       data
-        ?.map((row: { sections: SectionSchedule | null }) => row.sections)
-        .filter((section): section is SectionSchedule => Boolean(section)) || []
+        ?.map((row: any) => row.sections)
+        .filter((section: any): section is SectionSchedule => Boolean(section)) || []
     );
   }
 
@@ -569,8 +559,7 @@ export class EnrollmentService {
   }
 
   private async getCourseIdsByStatus(studentId: string, status: string): Promise<Set<string>> {
-    const { data, error } = await supabase
-      .from('enrollments')
+    const { data, error } = await ((supabase.from('enrollments') as any)
       .select(
         `
           sections(
@@ -579,7 +568,7 @@ export class EnrollmentService {
         `
       )
       .eq('student_id', studentId)
-      .eq('status', status);
+      .eq('status', status) as any);
     if (error) throw error;
     const ids = new Set<string>();
     data?.forEach((row: { sections: { course_id: string | null } | null }) => {

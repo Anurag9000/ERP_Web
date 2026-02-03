@@ -37,6 +37,8 @@ export function BulkImportPage() {
                 validationErrors = services.importExportService.validateStudentData(data);
             } else if (importType === 'courses') {
                 validationErrors = services.importExportService.validateCourseData(data);
+            } else if (importType === 'enrollments') {
+                validationErrors = services.importExportService.validateEnrollmentData(data);
             }
 
             setValidationErrors([...parseErrors, ...validationErrors]);
@@ -60,6 +62,8 @@ export function BulkImportPage() {
                 importResult = await services.importExportService.importStudents(data);
             } else if (importType === 'courses') {
                 importResult = await services.importExportService.importCourses(data);
+            } else if (importType === 'enrollments') {
+                importResult = await services.importExportService.importEnrollments(data);
             }
 
             setResult(importResult);
@@ -111,6 +115,8 @@ export function BulkImportPage() {
             headers = 'student_id,first_name,last_name,email,phone,password';
         } else if (type === 'courses') {
             headers = 'code,name,description,credits,department_code';
+        } else if (type === 'enrollments') {
+            headers = 'student_id,course_code,section_number,status,grade,enrolled_at';
         }
 
         const blob = new Blob([headers], { type: 'text/csv' });
@@ -138,7 +144,7 @@ export function BulkImportPage() {
                         <Select
                             label="Data Type"
                             value={importType}
-                            onChange={(e) => {
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                                 setImportType(e.target.value as ImportType);
                                 setFile(null);
                                 setPreview([]);
@@ -149,6 +155,7 @@ export function BulkImportPage() {
                         >
                             <option value="students">Students</option>
                             <option value="courses">Courses</option>
+                            <option value="enrollments">Enrollments</option>
                         </Select>
 
                         <div>
@@ -224,8 +231,8 @@ export function BulkImportPage() {
                         {result && (
                             <div
                                 className={`rounded-lg p-4 ${result.success
-                                        ? 'bg-green-50 border border-green-200'
-                                        : 'bg-yellow-50 border border-yellow-200'
+                                    ? 'bg-green-50 border border-green-200'
+                                    : 'bg-yellow-50 border border-yellow-200'
                                     }`}
                             >
                                 <div className="flex items-start gap-2">

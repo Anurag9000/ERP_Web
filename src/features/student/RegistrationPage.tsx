@@ -56,10 +56,10 @@ export function RegistrationPage() {
       const result = await services.enrollmentService.fetchRegistrationData(user!.id);
       setEnrollments(result.enrollments);
       setWaitlists(result.waitlists);
-      setSections(result.sections);
-      setDepartments(result.departments);
-    } catch (error) {
-      console.error('Error loading registration data:', error);
+      setSections(result.sections || []);
+      setDepartments(result.departments || []);
+    } catch (err: any) {
+      console.error('Error loading registration data:', err);
       setMessage({ type: 'error', text: 'Could not load registration data.' });
     } finally {
       setLoading(false);
@@ -73,7 +73,7 @@ export function RegistrationPage() {
         section.courses.name.toLowerCase().includes(search.toLowerCase());
 
       const matchesDept = departmentFilter
-        ? section.courses.departments.code === departmentFilter
+        ? (section.courses.departments as any)?.code === departmentFilter
         : true;
 
       const matchesOpen = showOpenOnly ? section.status === 'OPEN' : true;
@@ -117,7 +117,7 @@ export function RegistrationPage() {
 
     try {
       const currentSections = enrollments.map((enrollment) => enrollment.sections).filter(Boolean) as RegistrationSection[];
-      const result = await services.enrollmentService.enrollInSection(user.id, section, currentSections);
+      const result = await services.enrollmentService.enrollInSection(user!.id, section, currentSections as any);
       setMessage({
         type: 'success',
         text: result.status === 'ENROLLED' ? 'Enrolled successfully.' : 'Section is full. You have been added to the waitlist.',
@@ -146,8 +146,8 @@ export function RegistrationPage() {
       });
       return;
     }
-    const deadline = enrollment.sections?.terms?.drop_deadline
-      ? new Date(enrollment.sections.terms.drop_deadline)
+    const deadline = (enrollment.sections as any)?.terms?.drop_deadline
+      ? new Date((enrollment.sections as any).terms.drop_deadline)
       : null;
     if (deadline && deadline < new Date()) {
       setMessage({
@@ -253,11 +253,10 @@ export function RegistrationPage() {
 
       {message && (
         <div
-          className={`rounded-lg px-4 py-3 ${
-            message.type === 'success'
-              ? 'bg-green-50 text-green-800 border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
+          className={`rounded-lg px-4 py-3 ${message.type === 'success'
+            ? 'bg-green-50 text-green-800 border border-green-200'
+            : 'bg-red-50 text-red-800 border border-red-200'
+            }`}
         >
           {message.text}
         </div>
@@ -343,8 +342,8 @@ export function RegistrationPage() {
                         {dropClosed
                           ? 'Deadline Passed'
                           : actionEnrollment === enrollment.id
-                          ? 'Dropping...'
-                          : 'Drop'}
+                            ? 'Dropping...'
+                            : 'Drop'}
                       </Button>
                     </div>
                   </div>
@@ -374,11 +373,11 @@ export function RegistrationPage() {
                 <div>
                   <div className="flex items-center space-x-3">
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {entry.sections.courses.code} - Section {entry.sections.section_number}
+                      {(entry.sections.courses as any).code} - Section {entry.sections.section_number}
                     </h3>
                     <Badge variant="warning">Position {entry.position}</Badge>
                   </div>
-                  <p className="text-gray-600">{entry.sections.courses.name}</p>
+                  <p className="text-gray-600">{(entry.sections.courses as any).name}</p>
                 </div>
                 <div className="mt-3 md:mt-0 flex items-center space-x-2">
                   <Badge variant="default">{entry.status}</Badge>
@@ -472,14 +471,14 @@ export function RegistrationPage() {
                       {actionSection === section.id
                         ? 'Processing...'
                         : alreadyEnrolled
-                        ? 'Enrolled'
-                        : alreadyWaitlisted
-                        ? 'Waitlisted'
-                        : !canWrite
-                        ? 'Maintenance'
-                        : seatsAvailable > 0 && section.status === 'OPEN'
-                        ? 'Register'
-                        : 'Join Waitlist'}
+                          ? 'Enrolled'
+                          : alreadyWaitlisted
+                            ? 'Waitlisted'
+                            : !canWrite
+                              ? 'Maintenance'
+                              : seatsAvailable > 0 && section.status === 'OPEN'
+                                ? 'Register'
+                                : 'Join Waitlist'}
                     </Button>
                   </div>
                   {renderSectionMeta(section)}

@@ -38,7 +38,7 @@ describe('Sidebar', () => {
             </MemoryRouter>
         );
 
-        expect(screen.getByText('My Sections')).toBeInTheDocument();
+        expect(screen.getByText('Teaching Schedule')).toBeInTheDocument();
         expect(screen.getByText('Gradebook')).toBeInTheDocument();
         expect(screen.getByText('Attendance')).toBeInTheDocument();
         // Should NOT show student specific links

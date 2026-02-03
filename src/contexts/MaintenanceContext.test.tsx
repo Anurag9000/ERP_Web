@@ -73,7 +73,7 @@ describe('MaintenanceContext', () => {
         await waitFor(() => {
             expect(getByTestId('active')).toHaveTextContent('true');
             expect(getByTestId('can-write')).toHaveTextContent('false');
-            expect(getByTestId('message')).toContain('maintenance mode');
+            expect(getByTestId('message')).toHaveTextContent(/maintenance mode/i);
         });
     });
 });

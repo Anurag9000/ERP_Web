@@ -101,12 +101,19 @@ export class CalendarService {
             .eq('status', 'ACCEPTED');
 
         if (partError) throw partError;
-        const optedInIds = (participants || []).map(p => p.event_id);
+        const optedInIds = (participants || []).map((p: any) => p.event_id);
 
         let query = supabase
             .from('calendar_events')
-            .select('*')
-            .or(`organizer_id.eq.${studentId},id.in.(${optedInIds.join(',')})`)
+            .select('*');
+
+        if (optedInIds.length > 0) {
+            query = query.or(`organizer_id.eq.${studentId},id.in.(${optedInIds.join(',')})`);
+        } else {
+            query = query.eq('organizer_id', studentId);
+        }
+
+        query = query
             .gt('start_time', new Date().toISOString())
             .order('start_time', { ascending: true })
             .limit(20);
@@ -161,7 +168,7 @@ export class CalendarService {
                         event_id: eventId,
                         user_id: userId,
                         status: 'ACCEPTED'
-                    });
+                    } as any);
                 if (error) throw error;
             } else {
                 const { error } = await supabase

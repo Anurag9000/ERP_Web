@@ -4,7 +4,8 @@ import { Badge } from '../../components/common/Badge';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { BookOpen, Calendar, DollarSign, TrendingUp } from 'lucide-react';
-import { formatTime } from '../../lib/utils';
+import { formatTime, calculateGPA } from '../../lib/utils';
+import { services } from '../../services/serviceLocator';
 
 interface DashboardStats {
   enrolledCourses: number;
@@ -69,14 +70,34 @@ export function StudentDashboardPage() {
       const unreadCount = notifications.data?.length || 0;
       const totalPending = fees.data?.reduce((sum: number, fee: any) => sum + (fee.amount - fee.amount_paid), 0) || 0;
 
+      // Fetch actual upcoming classes
+      const schedule = await services.calendarService.fetchStudentSchedule(user!.id);
+      const currentDay = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'][new Date().getDay()];
+
+      const todayClasses = schedule
+        .filter(s => s.schedule_days.includes(currentDay))
+        .map(s => ({
+          course_code: s.course_code,
+          course_name: s.course_name,
+          section_number: s.section_number,
+          start_time: s.start_time,
+          end_time: s.end_time,
+          room: s.room || 'TBA',
+          day: currentDay
+        }));
+
+      // Calculate GPA
+      const gpaValue = calculateGPA(enrollments.data || []);
+
       setStats({
         enrolledCourses: enrolledCount,
-        upcomingClasses: 3,
+        upcomingClasses: todayClasses.length,
         pendingFees: totalPending,
         unreadNotifications: unreadCount,
-        currentGPA: 3.45,
+        currentGPA: gpaValue,
       });
 
+      setUpcomingClasses(todayClasses);
       setRecentNotifications(notifications.data || []);
     } catch (error) {
       console.error('Error loading dashboard:', error);

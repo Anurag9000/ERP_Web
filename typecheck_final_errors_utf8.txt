@@ -1,0 +1,158 @@
+﻿
+> vite-react-typescript-starter@0.0.0 typecheck
+> tsc --noEmit -p tsconfig.app.json
+
+src/contexts/AuthContext.tsx(109,17): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/contexts/MaintenanceContext.tsx(19,24): error TS6133: 'setAllowedRoles' is declared but its value is never read.
+src/contexts/MaintenanceContext.tsx(31,17): error TS2339: Property 'value' does not exist on type 'never'.
+src/contexts/MaintenanceContext.tsx(45,43): error TS2339: Property 'start_time' does not exist on type 'never'.
+src/contexts/ThemeContext.test.tsx(2,32): error TS6133: 'vi' is declared but its value is never read.
+src/features/admin/BroadcastAnnouncementPage.tsx(14,11): error TS6133: 'profile' is declared but its value is never read.
+src/features/admin/CourseManagementPage.tsx(65,71): error TS2339: Property 'id' does not exist on type 'never'.
+src/features/admin/CourseManagementPage.tsx(95,63): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "courses", never, "POST">', gave the following error.
+    Argument of type '{ code: string; name: string; department_id: string; credits: number; level: string; is_active: boolean; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "courses", never, "POST">', gave the following error.
+    Argument of type '{ code: string; name: string; department_id: string; credits: number; level: string; is_active: boolean; }' is not assignable to parameter of type 'never[]'.
+      Type '{ code: string; name: string; department_id: string; credits: number; level: string; is_active: boolean; }' is missing the following properties from type 'never[]': length, pop, push, concat, and 28 more.
+src/features/admin/CourseManagementPage.tsx(116,63): error TS2345: Argument of type '{ is_active: boolean; }' is not assignable to parameter of type 'never'.
+src/features/admin/ReportsPage.tsx(5,29): error TS6133: 'DollarSign' is declared but its value is never read.
+src/features/admin/ReportsPage.tsx(193,60): error TS2339: Property 'department' does not exist on type 'PieLabelRenderProps'.
+src/features/admin/ReportsPage.tsx(193,81): error TS2339: Property 'utilizationRate' does not exist on type 'PieLabelRenderProps'.
+src/features/admin/ReportsPage.tsx(195,68): error TS6133: 'entry' is declared but its value is never read.
+src/features/admin/SectionManagementPage.tsx(139,65): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/features/admin/UserManagementPage.tsx(151,70): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/features/analytics/StudentAnalyticsPage.tsx(3,1): error TS6133: 'Button' is declared but its value is never read.
+src/features/instructor/MessagingPage.tsx(1,21): error TS6133: 'useMemo' is declared but its value is never read.
+src/features/instructor/MessagingPage.tsx(12,23): error TS6133: 'Mail' is declared but its value is never read.
+src/features/instructor/MessagingPage.tsx(12,29): error TS6133: 'MessageSquare' is declared but its value is never read.
+src/features/notifications/NotificationsPage.tsx(120,19): error TS2339: Property 'category' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(121,26): error TS2339: Property 'category' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(122,25): error TS2339: Property 'enabled' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(123,33): error TS2339: Property 'delivery_method' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(143,10): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ user_id: string; category: string; enabled: boolean; delivery_method: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.
+src/features/notifications/NotificationsPage.tsx(159,25): error TS2339: Property 'enabled' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(160,33): error TS2339: Property 'delivery_method' does not exist on type 'never'.
+src/features/notifications/NotificationsPage.tsx(196,17): error TS2345: Argument of type '{ is_read: boolean; read_at: string; }' is not assignable to parameter of type 'never'.
+src/features/notifications/NotificationsPage.tsx(221,17): error TS2345: Argument of type '{ is_read: boolean; read_at: string; }' is not assignable to parameter of type 'never'.
+src/features/settings/AccountSettingsPage.tsx(7,1): error TS6133: 'Eye' is declared but its value is never read.
+src/features/settings/NotificationSettingsPage.tsx(4,1): error TS6133: 'services' is declared but its value is never read.
+src/features/settings/NotificationSettingsPage.tsx(23,11): error TS6133: 'user' is declared but its value is never read.
+src/features/student/AnalyticsPage.tsx(117,79): error TS2339: Property 'currentGpa' does not exist on type 'StudentAnalytics'.
+src/features/student/AnalyticsPage.tsx(160,77): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/AnalyticsPage.tsx(222,56): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/AnalyticsPage.tsx(243,42): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/AnalyticsPage.tsx(254,87): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/AnalyticsPage.tsx(286,57): error TS2551: Property 'gpa' does not exist on type 'GpaTrendPoint'. Did you mean 'sgpa'?
+src/features/student/ExaminationPage.tsx(12,5): error TS6133: 'Clock' is declared but its value is never read.
+src/features/student/ExaminationPage.tsx(169,21): error TS2322: Type '{ children: Element; title: string; action: any; }' is not assignable to type 'IntrinsicAttributes & CardProps'.
+  Property 'action' does not exist on type 'IntrinsicAttributes & CardProps'.
+src/services/AuditService.ts(16,57): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "audit_logs", never, "POST">', gave the following error.
+    Argument of type '{ user_id: string | null; action: string; entity_type: string; entity_id: string | null; old_values: Json; new_values: Json; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "audit_logs", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.
+src/services/DegreeAuditService.ts(31,9): error TS6133: 'programId' is declared but its value is never read.
+src/services/DegreeAuditService.ts(176,73): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/DegreeAuditService.ts(185,40): error TS2339: Property 'student_id' does not exist on type 'never'.
+src/services/DegreeAuditService.ts(186,45): error TS2339: Property 'first_name' does not exist on type 'never'.
+src/services/DegreeAuditService.ts(186,67): error TS2339: Property 'last_name' does not exist on type 'never'.
+src/services/EnhancedAttendanceService.ts(40,22): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ section_id: string; student_id: any; attendance_date: string; status: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Object literal may only specify known properties, and 'section_id' does not exist in type 'never[]'.
+src/services/EnhancedAttendanceService.ts(42,48): error TS2339: Property 'student_id' does not exist on type 'never'.
+src/services/EnhancedGradebookService.ts(33,18): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "assessments", never, "POST">', gave the following error.
+    Argument of type '{ section_id: string; name: string; assessment_type: "ASSIGNMENT" | "QUIZ" | "MIDTERM" | "FINAL" | "PROJECT"; max_marks: number; due_date: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "assessments", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'section_id' does not exist in type 'never[]'.
+src/services/EnhancedGradebookService.ts(44,56): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/EnhancedGradebookService.ts(62,22): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ enrollment_id: string; assessment_id: string; marks_obtained: number; submitted_at: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Object literal may only specify known properties, and 'enrollment_id' does not exist in type 'never[]'.
+src/services/EnhancedGradebookService.ts(101,43): error TS2339: Property 'grades' does not exist on type 'never'.
+src/services/EnhancedGradebookService.ts(117,29): error TS2345: Argument of type '{ grade: string; }' is not assignable to parameter of type 'never'.
+src/services/EnhancedGradebookService.ts(118,42): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/ExaminationService.ts(32,27): error TS6133: 'form' is declared but its value is never read.
+src/services/FacultyService.ts(71,18): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "appointment_requests", never, "POST">', gave the following error.
+    Argument of type '{ student_id: string; instructor_id: string; requested_date: string; requested_time: string; purpose: string; status: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "appointment_requests", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'student_id' does not exist in type 'never[]'.
+src/services/FacultyService.ts(136,25): error TS2345: Argument of type '{ status: "APPROVED" | "REJECTED"; }' is not assignable to parameter of type 'never'.
+src/services/FacultyService.ts(174,31): error TS2339: Property 'rooms' does not exist on type 'never'.
+src/services/FacultyService.ts(174,50): error TS2339: Property 'rooms' does not exist on type 'never'.
+src/services/FacultyService.ts(174,73): error TS2339: Property 'courses' does not exist on type 'never'.
+src/services/FacultyService.ts(181,29): error TS6133: 'officeHours' is declared but its value is never read.
+src/services/FinanceService.ts(72,13): error TS6133: 'updateError' is declared but its value is never read.
+src/services/FinanceService.ts(74,17): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/services/GoogleClassroomService.ts(21,13): error TS6133: 'accessToken' is declared but its value is never read.
+src/services/GoogleClassroomService.ts(22,22): error TS6133: 'CLIENT_ID' is declared but its value is never read.
+src/services/GoogleClassroomService.ts(23,22): error TS6133: 'SCOPES' is declared but its value is never read.
+src/services/GoogleClassroomService.ts(77,28): error TS6133: 'courseId' is declared but its value is never read.
+src/services/GoogleClassroomService.ts(110,18): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ google_course_id: string; erp_course_id: string; course_name: string; sync_enabled: boolean; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Object literal may only specify known properties, and 'google_course_id' does not exist in type 'never[]'.
+src/services/GoogleClassroomService.ts(138,22): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "assessments", never, "POST">', gave the following error.
+    Argument of type '{ section_id: string; name: string; description: string; assessment_type: string; max_marks: number; due_date: string | undefined; google_classroom_id: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "assessments", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'section_id' does not exist in type 'never[]'.
+src/services/GoogleClassroomService.ts(193,27): error TS2339: Property 'sync_enabled' does not exist on type 'never'.
+src/services/GoogleClassroomService.ts(194,34): error TS2339: Property 'google_course_id' does not exist on type 'never'.
+src/services/GoogleClassroomService.ts(195,28): error TS2339: Property 'last_sync' does not exist on type 'never'.
+src/services/GoogleClassroomService.ts(195,54): error TS2339: Property 'last_sync' does not exist on type 'never'.
+src/services/GradebookService.ts(164,5): error TS6133: 'sectionId' is declared but its value is never read.
+src/services/ImportExportService.ts(203,42): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/InstructorAttendanceService.ts(127,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ section_id: string; student_id: string; attendance_date: string; status: AttendanceStatus; minutes_late: number; notes: string | null; }[]' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Argument of type '{ section_id: string; student_id: string; attendance_date: string; status: AttendanceStatus; minutes_late: number; notes: string | null; }[]' is not assignable to parameter of type 'never[]'.
+      Type '{ section_id: string; student_id: string; attendance_date: string; status: AttendanceStatus; minutes_late: number; notes: string | null; }' is not assignable to type 'never'.
+src/services/InstructorMessagingService.ts(150,9): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "section_message_recipients", never, "POST">', gave the following error.
+    Argument of type '{ message_id: any; student_id: string; }[]' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "section_message_recipients", never, "POST">', gave the following error.
+    Argument of type '{ message_id: any; student_id: string; }[]' is not assignable to parameter of type 'never[]'.
+      Type '{ message_id: any; student_id: string; }' is not assignable to type 'never'.
+src/services/LearningGoalsService.ts(127,25): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/services/LearningGoalsService.ts(160,25): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/services/ReportingService.ts(45,9): error TS6133: 'departmentId' is declared but its value is never read.
+src/services/SectionPlannerService.ts(72,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "sections", never, "POST">', gave the following error.
+    Argument of type 'any[]' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "sections", never, "POST">', gave the following error.
+    Type 'any' is not assignable to type 'never'.
+src/services/SectionPlannerService.ts(114,37): error TS2339: Property 'schedule_days' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(123,19): error TS2339: Property 'start_time' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(124,19): error TS2339: Property 'end_time' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(205,26): error TS2339: Property 'capacity' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(209,43): error TS2339: Property 'capacity' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(212,28): error TS2339: Property 'capacity' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(215,78): error TS2339: Property 'capacity' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(274,21): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(275,29): error TS2339: Property 'courses' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(276,29): error TS2339: Property 'courses' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(277,25): error TS2339: Property 'term_id' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(278,27): error TS2339: Property 'terms' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(279,32): error TS2339: Property 'section_number' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(280,27): error TS2339: Property 'capacity' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(281,32): error TS2339: Property 'enrolled_count' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(282,32): error TS2339: Property 'waitlist_count' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(283,31): error TS2339: Property 'schedule_days' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(284,28): error TS2339: Property 'start_time' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(285,26): error TS2339: Property 'end_time' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(286,27): error TS2339: Property 'rooms' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(287,27): error TS2339: Property 'rooms' does not exist on type 'never'.
+src/services/SectionPlannerService.ts(288,31): error TS2339: Property 'rooms' does not exist on type 'never'.

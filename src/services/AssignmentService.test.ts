@@ -48,19 +48,13 @@ describe('AssignmentService', () => {
     describe('submitAssignment', () => {
         it('should record assignment submission', async () => {
             (supabase.from as any).mockImplementation((table: string) => {
-                if (table === 'enrollments') {
-                    return {
-                        select: vi.fn().mockReturnThis(),
-                        eq: vi.fn().mockReturnThis(),
-                        single: vi.fn().mockResolvedValue({ data: { id: 'e1' }, error: null })
-                    };
-                }
-                if (table === 'grades') {
-                    return {
-                        upsert: vi.fn().mockResolvedValue({ error: null })
-                    };
-                }
-                return {};
+                const chain = {
+                    select: vi.fn().mockReturnThis(),
+                    eq: vi.fn().mockReturnThis(),
+                    single: vi.fn().mockResolvedValue({ data: { id: table === 'enrollments' ? 'e1' : 'a1' }, error: null }),
+                    upsert: vi.fn().mockResolvedValue({ error: null })
+                };
+                return chain;
             });
 
             const result = await service.submitAssignment('a1', 'st1', new File([], 'test.pdf'));
