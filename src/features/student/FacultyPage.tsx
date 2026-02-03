@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -13,11 +13,12 @@ import {
     MessageSquare,
     Circle
 } from 'lucide-react';
+import type { InstructorProfile } from '../../services/FacultyService';
 
 export function FacultyPage() {
     const { user } = useAuth();
-    const [instructors, setInstructors] = useState<any[]>([]);
-    const [selectedInstructor, setSelectedInstructor] = useState<any>(null);
+    const [instructors, setInstructors] = useState<InstructorProfile[]>([]);
+    const [selectedInstructor, setSelectedInstructor] = useState<InstructorProfile | null>(null);
     const [showAppointmentModal, setShowAppointmentModal] = useState(false);
     const [appointmentDate, setAppointmentDate] = useState('');
     const [appointmentTime, setAppointmentTime] = useState('');
@@ -26,11 +27,7 @@ export function FacultyPage() {
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    useEffect(() => {
-        loadInstructors();
-    }, []);
-
-    async function loadInstructors() {
+    const loadInstructors = useCallback(async () => {
         setLoading(true);
         try {
             const data = await services.facultyService.fetchInstructors();
@@ -40,9 +37,13 @@ export function FacultyPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
-    function openAppointmentModal(instructor: any) {
+    useEffect(() => {
+        loadInstructors();
+    }, [loadInstructors]);
+
+    function openAppointmentModal(instructor: InstructorProfile) {
         setSelectedInstructor(instructor);
         setShowAppointmentModal(true);
         setMessage(null);
@@ -58,7 +59,7 @@ export function FacultyPage() {
         try {
             const result = await services.facultyService.requestAppointment(
                 user!.id,
-                selectedInstructor.id,
+                selectedInstructor!.id,
                 new Date(appointmentDate),
                 appointmentTime,
                 purpose
@@ -73,8 +74,9 @@ export function FacultyPage() {
             } else {
                 setMessage({ type: 'error', text: result.error || 'Failed to send request' });
             }
-        } catch (error: any) {
-            setMessage({ type: 'error', text: error.message });
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+            setMessage({ type: 'error', text: errorMessage });
         } finally {
             setSubmitting(false);
         }
@@ -179,8 +181,8 @@ export function FacultyPage() {
                             {message && (
                                 <div
                                     className={`rounded-lg px-4 py-3 ${message.type === 'success'
-                                            ? 'bg-green-50 border border-green-200 text-green-800'
-                                            : 'bg-red-50 border border-red-200 text-red-800'
+                                        ? 'bg-green-50 border border-green-200 text-green-800'
+                                        : 'bg-red-50 border border-red-200 text-red-800'
                                         }`}
                                 >
                                     {message.text}

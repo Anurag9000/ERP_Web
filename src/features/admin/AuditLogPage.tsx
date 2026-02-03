@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { supabase } from '../../lib/supabase';
@@ -26,11 +26,7 @@ export function AuditLogPage() {
   const [filter, setFilter] = useState<string>('ALL');
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadLogs();
-  }, [filter]);
-
-  async function loadLogs() {
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
       let query = supabase
@@ -64,7 +60,11 @@ export function AuditLogPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [filter]);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   function exportCsv() {
     if (!logs.length) return;

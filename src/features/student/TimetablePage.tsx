@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -102,13 +102,7 @@ export function TimetablePage() {
 
   // ... (loadData effect kept same)
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     try {
@@ -126,7 +120,13 @@ export function TimetablePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   // ... (timeline, dayEvents memos kept same)
 
@@ -167,7 +167,7 @@ export function TimetablePage() {
           durationMinutes,
           top: (startMinutes - timeline.minMinutes) * MINUTE_HEIGHT,
           height: Math.max(durationMinutes * MINUTE_HEIGHT, 56),
-        } as any);
+        } as PositionedSection);
       });
     });
     Object.values(grouped).forEach((entries) => entries.sort((a, b) => a.startMinutes - b.startMinutes));
@@ -192,7 +192,7 @@ export function TimetablePage() {
           endTime: end.toISOString(),
           location: section.room || 'TBA',
           description: `Section ${section.section_number}`,
-        } as any;
+        };
       })
     );
     const ics = generateICS(icsEvents);

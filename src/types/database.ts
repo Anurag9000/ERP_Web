@@ -399,6 +399,48 @@ export type Database = {
         Insert: Omit<Database['public']['Tables']['audit_logs']['Row'], 'id' | 'created_at'>;
         Update: Partial<Database['public']['Tables']['audit_logs']['Insert']>;
       };
+      rooms: {
+        Row: {
+          id: string;
+          code: string;
+          name: string;
+          capacity: number;
+          building: string | null;
+          type: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['rooms']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['rooms']['Insert']>;
+      };
+      course_prerequisites: {
+        Row: {
+          course_id: string;
+          prerequisite_id: string;
+          created_at: string;
+        };
+        Insert: Database['public']['Tables']['course_prerequisites']['Row'];
+        Update: Partial<Database['public']['Tables']['course_prerequisites']['Insert']>;
+      };
+      course_corequisites: {
+        Row: {
+          course_id: string;
+          corequisite_id: string;
+          created_at: string;
+        };
+        Insert: Database['public']['Tables']['course_corequisites']['Row'];
+        Update: Partial<Database['public']['Tables']['course_corequisites']['Insert']>;
+      };
+      course_antirequisites: {
+        Row: {
+          course_id: string;
+          antirequisite_id: string;
+          created_at: string;
+        };
+        Insert: Database['public']['Tables']['course_antirequisites']['Row'];
+        Update: Partial<Database['public']['Tables']['course_antirequisites']['Insert']>;
+      };
     };
     Functions: {
       is_maintenance_mode: {

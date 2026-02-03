@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
@@ -9,6 +9,10 @@ import { Loader2 } from 'lucide-react';
 import type { UserRole } from '../../types/database';
 import { useMaintenance } from '../../contexts/MaintenanceContext';
 import { services } from '../../services/serviceLocator';
+import type { Database } from '../../types/database';
+
+type UserProfileInsert = Database['public']['Tables']['user_profiles']['Insert'];
+type UserProfileUpdate = Database['public']['Tables']['user_profiles']['Update'];
 
 interface UserProfileRow {
   id: string;
@@ -54,13 +58,7 @@ export function UserManagementPage() {
 
   const isAdmin = profile?.role === 'ADMIN' || profile?.role === 'STAFF';
 
-  useEffect(() => {
-    if (isAdmin) {
-      loadData();
-    }
-  }, [isAdmin]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     try {
@@ -95,7 +93,13 @@ export function UserManagementPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadData();
+    }
+  }, [isAdmin, loadData]);
 
   async function createUserProfile(event: React.FormEvent) {
     event.preventDefault();
@@ -108,8 +112,7 @@ export function UserManagementPage() {
       return;
     }
     try {
-      setSavingId('create');
-      const { error } = await (supabase.from('user_profiles') as any).insert({
+      const newProfile: UserProfileInsert = {
         id: newUserForm.authUserId,
         first_name: newUserForm.firstName,
         last_name: newUserForm.lastName,
@@ -118,18 +121,27 @@ export function UserManagementPage() {
         department_id: newUserForm.departmentId || null,
         is_active: true,
         must_change_password: true,
-      });
+        phone: null,
+        student_id: null,
+        employee_id: null,
+        profile_image_url: null,
+        bio: null,
+        office_room: null,
+        office_hours: null
+      };
+
+      const { error } = await (supabase.from('user_profiles') as any).insert(newProfile);
       if (error) throw error;
       await services.auditService.record({
-        user_id: profile?.id || null,
+        userId: profile?.id || null,
         action: 'USER_CREATED',
-        entity_type: 'USER',
-        entity_id: newUserForm.authUserId,
-        new_values: {
+        entityType: 'USER',
+        entityId: newUserForm.authUserId,
+        newValues: {
           email: newUserForm.email,
           role: newUserForm.role,
         },
-      } as any);
+      });
       setMessage('User profile created.');
       setNewUserForm({ authUserId: '', firstName: '', lastName: '', email: '', role: 'STUDENT', departmentId: '' });
       await loadData();
@@ -148,15 +160,27 @@ export function UserManagementPage() {
     }
     try {
       setSavingId(userId);
-      const { error } = await (supabase.from('user_profiles') as any).update(payload).eq('id', userId);
+      // Exclude generic Partial<UserProfileRow> fields that aren't in the DB update type
+      const updatePayload: UserProfileUpdate = {
+        role: payload.role,
+        is_active: payload.is_active,
+        must_change_password: payload.must_change_password
+      };
+
+      // Filter out undefined values
+      Object.keys(updatePayload).forEach(key =>
+        (updatePayload as any)[key] === undefined && delete (updatePayload as any)[key]
+      );
+
+      const { error } = await (supabase.from('user_profiles') as any).update(updatePayload).eq('id', userId);
       if (error) throw error;
       await services.auditService.record({
-        user_id: profile?.id || null,
+        userId: profile?.id || null,
         action: auditAction,
-        entity_type: 'USER',
-        entity_id: userId,
-        new_values: payload,
-      } as any);
+        entityType: 'USER',
+        entityId: userId,
+        newValues: payload as any,
+      });
       setMessage('User updated.');
       await loadData();
     } catch (error) {

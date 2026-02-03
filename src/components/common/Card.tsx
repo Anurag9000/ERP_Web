@@ -7,9 +7,10 @@ interface CardProps {
   title?: string;
   subtitle?: string;
   color?: string;
+  action?: ReactNode;
 }
 
-export function Card({ children, className, title, subtitle, color }: CardProps) {
+export function Card({ children, className, title, subtitle, color, action }: CardProps) {
   return (
     <div
       className={cn(
@@ -18,10 +19,13 @@ export function Card({ children, className, title, subtitle, color }: CardProps)
       )}
       style={color ? { borderLeftWidth: '4px', borderLeftColor: color } : undefined}
     >
-      {(title || subtitle) && (
-        <div className="px-6 py-4 border-b border-gray-200">
-          {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
-          {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+      {(title || subtitle || action) && (
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
+            {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+          </div>
+          {action && <div>{action}</div>}
         </div>
       )}
       <div className="px-6 py-4">{children}</div>

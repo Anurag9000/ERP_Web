@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -44,13 +44,7 @@ export function RegistrationPage() {
   const [actionWaitlist, setActionWaitlist] = useState<string | null>(null);
   const [message, setMessage] = useState<MessageState>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const result = await services.enrollmentService.fetchRegistrationData(user!.id);
@@ -64,7 +58,13 @@ export function RegistrationPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   const filteredSections = useMemo(() => {
     return sections.filter((section) => {
@@ -73,7 +73,7 @@ export function RegistrationPage() {
         section.courses.name.toLowerCase().includes(search.toLowerCase());
 
       const matchesDept = departmentFilter
-        ? (section.courses.departments as any)?.code === departmentFilter
+        ? section.courses.departments.code === departmentFilter
         : true;
 
       const matchesOpen = showOpenOnly ? section.status === 'OPEN' : true;
@@ -117,7 +117,7 @@ export function RegistrationPage() {
 
     try {
       const currentSections = enrollments.map((enrollment) => enrollment.sections).filter(Boolean) as RegistrationSection[];
-      const result = await services.enrollmentService.enrollInSection(user!.id, section, currentSections as any);
+      const result = await services.enrollmentService.enrollInSection(user!.id, section, currentSections);
       setMessage({
         type: 'success',
         text: result.status === 'ENROLLED' ? 'Enrolled successfully.' : 'Section is full. You have been added to the waitlist.',
@@ -146,8 +146,8 @@ export function RegistrationPage() {
       });
       return;
     }
-    const deadline = (enrollment.sections as any)?.terms?.drop_deadline
-      ? new Date((enrollment.sections as any).terms.drop_deadline)
+    const deadline = enrollment.sections.terms?.drop_deadline
+      ? new Date(enrollment.sections.terms.drop_deadline)
       : null;
     if (deadline && deadline < new Date()) {
       setMessage({
@@ -373,11 +373,11 @@ export function RegistrationPage() {
                 <div>
                   <div className="flex items-center space-x-3">
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {(entry.sections.courses as any).code} - Section {entry.sections.section_number}
+                      {entry.sections?.courses.code || 'N/A'} - Section {entry.sections?.section_number || 'N/A'}
                     </h3>
                     <Badge variant="warning">Position {entry.position}</Badge>
                   </div>
-                  <p className="text-gray-600">{(entry.sections.courses as any).name}</p>
+                  <p className="text-gray-600">{entry.sections?.courses.name || 'Unknown Course'}</p>
                 </div>
                 <div className="mt-3 md:mt-0 flex items-center space-x-2">
                   <Badge variant="default">{entry.status}</Badge>

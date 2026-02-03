@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -22,17 +22,7 @@ export function ExaminationPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'form' | 'admit' | 'datesheet' | 'marks'>('form');
 
-    useEffect(() => {
-        loadTerms();
-    }, []);
-
-    useEffect(() => {
-        if (selectedTerm && user) {
-            loadExamData();
-        }
-    }, [selectedTerm, user]);
-
-    async function loadTerms() {
+    const loadTerms = useCallback(async () => {
         try {
             const data = await services.sectionPlannerService.fetchTerms();
             setTerms(data);
@@ -45,14 +35,15 @@ export function ExaminationPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [user]);
 
-    async function loadExamData() {
+    const loadExamData = useCallback(async () => {
+        if (!selectedTerm || !user) return;
         try {
             const [admit, dates, marks] = await Promise.all([
-                services.examinationService.generateAdmitCard(user!.id, selectedTerm),
+                services.examinationService.generateAdmitCard(user.id, selectedTerm),
                 services.examinationService.getDatesheet(selectedTerm),
-                services.examinationService.getMarksheet(user!.id, selectedTerm)
+                services.examinationService.getMarksheet(user.id, selectedTerm)
             ]);
 
             setAdmitCard(admit);
@@ -61,7 +52,17 @@ export function ExaminationPage() {
         } catch (error) {
             console.error('Error loading exam data:', error);
         }
-    }
+    }, [selectedTerm, user]);
+
+    useEffect(() => {
+        loadTerms();
+    }, [loadTerms]);
+
+    useEffect(() => {
+        if (selectedTerm && user) {
+            loadExamData();
+        }
+    }, [selectedTerm, user, loadExamData]);
 
     async function handleSubmitExamForm() {
         try {
@@ -165,7 +166,6 @@ export function ExaminationPage() {
             {activeTab === 'admit' && (
                 <Card
                     title="Admit Card"
-                    // @ts-ignore
                     action={
                         admitCard && (
                             <Button size="sm" onClick={downloadAdmitCard}>

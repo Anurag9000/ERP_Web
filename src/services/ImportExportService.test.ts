@@ -24,7 +24,7 @@ describe('ImportExportService', () => {
 
     describe('validateStudentData', () => {
         it('should catch missing required fields', () => {
-            const data = [{ first_name: 'John' }]; // Missing other fields
+            const data = [{ first_name: 'John' }] as any; // Missing other fieldscast to any for test
             const errors = service.validateStudentData(data);
             expect(errors).toHaveLength(3); // student_id, last_name, email
         });

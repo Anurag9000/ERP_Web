@@ -50,7 +50,17 @@ export function getDayAbbreviation(day: string): string {
   return abbreviations[day] || day;
 }
 
-export function calculateGPA(enrollments: any[]): number {
+interface EnrollmentWithGrade {
+  status: string;
+  grade_points: number | null;
+  sections?: {
+    courses?: {
+      credits: number;
+    } | null;
+  } | null;
+}
+
+export function calculateGPA(enrollments: EnrollmentWithGrade[]): number {
   const completed = (enrollments || []).filter((e) => e.status === 'COMPLETED');
   if (!completed.length) return 0;
 
@@ -58,8 +68,8 @@ export function calculateGPA(enrollments: any[]): number {
   let totalCredits = 0;
 
   completed.forEach((e) => {
-    const credits = (e as any).sections?.courses?.credits || 0;
-    const gradePoints = (e as any).grade_points || 0;
+    const credits = e.sections?.courses?.credits || 0;
+    const gradePoints = e.grade_points || 0;
     totalPoints += credits * gradePoints;
     totalCredits += credits;
   });
@@ -86,7 +96,8 @@ export function getGradePoints(letterGrade: string): number {
   return gradeMap[letterGrade] || 0.0;
 }
 
-export function debounce<T extends (...args: unknown[]) => unknown>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

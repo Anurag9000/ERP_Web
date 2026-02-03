@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -22,13 +22,7 @@ export function AssignmentsPage() {
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
-    useEffect(() => {
-        if (user) {
-            loadAssignments();
-        }
-    }, [user]);
-
-    async function loadAssignments() {
+    const loadAssignments = useCallback(async () => {
         setLoading(true);
         try {
             const data = await services.assignmentService.fetchStudentAssignments(user!.id);
@@ -38,7 +32,13 @@ export function AssignmentsPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            loadAssignments();
+        }
+    }, [user, loadAssignments]);
 
     async function handleSubmit(assignmentId: string) {
         const fileInput = fileInputRefs.current[assignmentId];
@@ -66,8 +66,9 @@ export function AssignmentsPage() {
             } else {
                 setMessage({ type: 'error', text: result.error || 'Failed to submit assignment' });
             }
-        } catch (error: any) {
-            setMessage({ type: 'error', text: error.message });
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+            setMessage({ type: 'error', text: errorMessage });
         } finally {
             setSubmitting(null);
         }
@@ -135,8 +136,8 @@ export function AssignmentsPage() {
             {message && (
                 <div
                     className={`rounded-lg px-4 py-3 ${message.type === 'success'
-                            ? 'bg-green-50 border border-green-200 text-green-800'
-                            : 'bg-red-50 border border-red-200 text-red-800'
+                        ? 'bg-green-50 border border-green-200 text-green-800'
+                        : 'bg-red-50 border border-red-200 text-red-800'
                         }`}
                 >
                     {message.text}

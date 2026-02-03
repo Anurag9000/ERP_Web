@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -11,18 +11,22 @@ import {
     User
 } from 'lucide-react';
 
+interface Appointment {
+    id: string;
+    studentName: string;
+    requestedDate: string | Date;
+    requestedTime: string;
+    purpose: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    createdAt: string;
+}
+
 export function AppointmentsPage() {
     const { user } = useAuth();
-    const [appointments, setAppointments] = useState<any[]>([]);
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (user) {
-            loadAppointments();
-        }
-    }, [user]);
-
-    async function loadAppointments() {
+    const loadAppointments = useCallback(async () => {
         setLoading(true);
         try {
             const data = await services.facultyService.getInstructorAppointments(user!.id);
@@ -32,7 +36,13 @@ export function AppointmentsPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            loadAppointments();
+        }
+    }, [user, loadAppointments]);
 
     async function handleUpdateStatus(appointmentId: string, status: 'APPROVED' | 'REJECTED') {
         try {

@@ -78,9 +78,10 @@ export function EnrollmentOverrideModal({ onClose, onSuccess }: EnrollmentOverri
                 onSuccess();
                 onClose();
             }, 1500);
-        } catch (error: any) {
+        } catch (error) {
             console.error('Override failed', error);
-            setMessage({ type: 'error', text: error.message || 'Override failed' });
+            const errorMessage = error instanceof Error ? error.message : 'Override failed';
+            setMessage({ type: 'error', text: errorMessage });
         } finally {
             setLoading(false);
         }

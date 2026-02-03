@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
@@ -48,14 +48,7 @@ export function TranscriptPage() {
     message: '',
   });
 
-  useEffect(() => {
-    if (user) {
-      loadTranscript();
-      loadRequests();
-    }
-  }, [user]);
-
-  async function loadTranscript() {
+  const loadTranscript = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     try {
@@ -86,7 +79,27 @@ export function TranscriptPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  const loadRequests = useCallback(async () => {
+    if (!user) return;
+    try {
+      setRequestsLoading(true);
+      const data = await services.registrarService.fetchRequests(user.id);
+      setRequests(data);
+    } catch (error) {
+      console.error('Error loading registrar requests:', error);
+    } finally {
+      setRequestsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadTranscript();
+      loadRequests();
+    }
+  }, [user, loadTranscript, loadRequests]);
 
   const groupedByTerm = useMemo(() => {
     const terms = new Map<string, TranscriptEntry[]>();
@@ -142,18 +155,7 @@ export function TranscriptPage() {
     URL.revokeObjectURL(url);
   }
 
-  async function loadRequests() {
-    if (!user) return;
-    try {
-      setRequestsLoading(true);
-      const data = await services.registrarService.fetchRequests(user.id);
-      setRequests(data);
-    } catch (error) {
-      console.error('Error loading registrar requests:', error);
-    } finally {
-      setRequestsLoading(false);
-    }
-  }
+
 
   function printTranscript() {
     if (!records.length) {

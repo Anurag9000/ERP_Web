@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
@@ -26,17 +26,7 @@ export function MessagingPage() {
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    loadSections();
-  }, [user]);
-
-  useEffect(() => {
-    if (!selectedSectionId) return;
-    loadSectionData(selectedSectionId);
-  }, [selectedSectionId]);
-
-  async function loadSections() {
+  const loadSections = useCallback(async () => {
     if (!user) return;
     try {
       setLoading(true);
@@ -51,9 +41,9 @@ export function MessagingPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user, selectedSectionId]);
 
-  async function loadSectionData(sectionId: string) {
+  const loadSectionData = useCallback(async (sectionId: string) => {
     try {
       setLoading(true);
       const [rosterData, messageData] = await Promise.all([
@@ -69,7 +59,19 @@ export function MessagingPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadSections();
+    }
+  }, [user, loadSections]);
+
+  useEffect(() => {
+    if (selectedSectionId) {
+      loadSectionData(selectedSectionId);
+    }
+  }, [selectedSectionId, loadSectionData]);
 
   function toggleRecipient(studentId: string) {
     setSelectedRecipients((prev) => {

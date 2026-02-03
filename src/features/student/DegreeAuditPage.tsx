@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { services } from '../../services/serviceLocator';
@@ -15,18 +15,36 @@ import {
 } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
+interface Requirement {
+    category: string;
+    completed: number;
+    required: number;
+    inProgress: number;
+    remaining: number;
+}
+
+interface SuggestedCourse {
+    code: string;
+    name: string;
+    reason: string;
+    credits: number;
+}
+
+interface DegreeProgress {
+    totalCredits: number;
+    completedCredits: number;
+    inProgressCredits: number;
+    cgpa: number;
+    requirements: Requirement[];
+    suggestedCourses: SuggestedCourse[];
+}
+
 export function DegreeAuditPage() {
     const { user } = useAuth();
-    const [progress, setProgress] = useState<any>(null);
+    const [progress, setProgress] = useState<DegreeProgress | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (user) {
-            loadProgress();
-        }
-    }, [user]);
-
-    async function loadProgress() {
+    const loadProgress = useCallback(async () => {
         setLoading(true);
         try {
             const data = await services.degreeAuditService.calculateDegreeProgress(user!.id);
@@ -36,7 +54,13 @@ export function DegreeAuditPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            loadProgress();
+        }
+    }, [user, loadProgress]);
 
     if (loading) {
         return (
@@ -148,7 +172,7 @@ export function DegreeAuditPage() {
                 {/* Requirements Breakdown */}
                 <Card title="Requirements" className="lg:col-span-2">
                     <div className="space-y-4">
-                        {progress.requirements.map((req: any, idx: number) => {
+                        {progress.requirements.map((req, idx) => {
                             const percentage = req.required > 0 ? ((req.completed + req.inProgress) / req.required) * 100 : 0;
                             const isComplete = req.completed >= req.required;
 
@@ -188,7 +212,7 @@ export function DegreeAuditPage() {
             {progress.suggestedCourses && progress.suggestedCourses.length > 0 && (
                 <Card title="Suggested Courses">
                     <div className="space-y-3">
-                        {progress.suggestedCourses.map((course: any, idx: number) => (
+                        {progress.suggestedCourses.map((course, idx) => (
                             <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                 <div>
                                     <p className="font-medium text-gray-900">{course.code} - {course.name}</p>

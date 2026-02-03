@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -14,10 +14,17 @@ import {
 } from 'lucide-react';
 import type { LearningGoal } from '../../services/LearningGoalsService';
 
+interface GoalStatistics {
+    total: number;
+    completed: number;
+    inProgress: number;
+    averageProgress: number;
+}
+
 export function GoalsPage() {
     const { user } = useAuth();
     const [goals, setGoals] = useState<LearningGoal[]>([]);
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<GoalStatistics | null>(null);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -28,13 +35,7 @@ export function GoalsPage() {
     const [targetDate, setTargetDate] = useState('');
     const [milestones, setMilestones] = useState<string[]>(['']);
 
-    useEffect(() => {
-        if (user) {
-            loadGoals();
-        }
-    }, [user]);
-
-    async function loadGoals() {
+    const loadGoals = useCallback(async () => {
         setLoading(true);
         try {
             const [goalsData, statsData] = await Promise.all([
@@ -48,7 +49,13 @@ export function GoalsPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            loadGoals();
+        }
+    }, [user, loadGoals]);
 
     async function handleCreateGoal() {
         if (!title || !targetDate) return;
@@ -308,7 +315,7 @@ export function GoalsPage() {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                                     <select
                                         value={category}
-                                        onChange={(e) => setCategory(e.target.value as any)}
+                                        onChange={(e) => setCategory(e.target.value as 'ACADEMIC' | 'SKILL' | 'CAREER' | 'PERSONAL')}
                                         className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     >
                                         <option value="ACADEMIC">Academic</option>

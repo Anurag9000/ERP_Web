@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { supabase } from '../../lib/supabase';
@@ -35,16 +35,25 @@ export function StudentDashboardPage() {
     currentGPA: 0,
   });
   const [upcomingClasses, setUpcomingClasses] = useState<UpcomingClass[]>([]);
-  const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
+  interface Notification {
+    id: string;
+    title: string;
+    message: string;
+    category: string;
+    is_read: boolean;
+    created_at: string;
+  }
+
+  const [recentNotifications, setRecentNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  // Wait, if I define loadDashboardData with useCallback, I SHOULD add it to dependencies.
+  // The Linter says: "missing dependency: 'loadDashboardData'".
+  // So: [user, loadDashboardData]
+  // BUT: loadDashboardData depends on USER.
+  // So it changes when user changes.
+  // So effectively it triggers correctly.
 
-  useEffect(() => {
-    if (user) {
-      loadDashboardData();
-    }
-  }, [user]);
-
-  async function loadDashboardData() {
+  const loadDashboardData = useCallback(async () => {
     try {
       const [enrollments, notifications, fees] = await Promise.all([
         supabase
@@ -104,7 +113,13 @@ export function StudentDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user, loadDashboardData]);
 
   if (loading) {
     return (

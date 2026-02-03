@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card } from '../../components/common/Card';
 import { supabase } from '../../lib/supabase';
 import { Users, BookOpen, Layers, Activity, AlertTriangle, CalendarClock, UserPlus } from 'lucide-react';
@@ -32,11 +32,7 @@ export function AdminDashboardPage() {
   const [showOverrideModal, setShowOverrideModal] = useState(false);
   const [showOverrideSuccess, setShowOverrideSuccess] = useState(false); // simple trigger to reload dashboard
 
-  useEffect(() => {
-    loadDashboard();
-  }, [showOverrideSuccess]);
-
-  async function loadDashboard() {
+  const loadDashboard = useCallback(async () => {
     try {
       setLoading(true);
       const [userCount, courseCount, sectionCount, enrollmentCount, maintenanceWindows] = await Promise.all([
@@ -63,7 +59,11 @@ export function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard, showOverrideSuccess]);
 
   if (loading) {
     return (

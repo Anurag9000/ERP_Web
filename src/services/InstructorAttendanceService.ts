@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from '../lib/supabase';
 
 export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
@@ -50,7 +49,22 @@ export class InstructorAttendanceService {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data || []).map((section: any) => ({
+
+    interface SectionRow {
+      id: string;
+      course_id: string; // Add if needed
+      section_number: string;
+      schedule_days: string[];
+      start_time: string;
+      end_time: string;
+      enrolled_count: number;
+      courses: { code: string; name: string } | null;
+      terms: { name: string } | null;
+    }
+
+    const sections = data as unknown as SectionRow[];
+
+    return sections.map((section) => ({
       id: section.id,
       courseCode: section.courses?.code || '',
       courseName: section.courses?.name || '',
@@ -78,7 +92,18 @@ export class InstructorAttendanceService {
       .order('created_at', { ascending: true });
     if (error) throw error;
 
-    return (data || []).map((enrollment: any) => ({
+    interface EnrollmentRow {
+      student_id: string;
+      user_profiles: {
+        first_name: string;
+        last_name: string;
+        email: string;
+      } | null;
+    }
+
+    const enrollments = data as unknown as EnrollmentRow[];
+
+    return enrollments.map((enrollment) => ({
       id: enrollment.student_id,
       firstName: enrollment.user_profiles?.first_name || '',
       lastName: enrollment.user_profiles?.last_name || '',
@@ -95,7 +120,20 @@ export class InstructorAttendanceService {
       .lte('attendance_date', endDate)
       .order('attendance_date', { ascending: false });
     if (error) throw error;
-    return (data || []).map((record: any) => ({
+
+    interface AttendanceRow {
+      id: string;
+      section_id: string;
+      student_id: string;
+      attendance_date: string;
+      status: string;
+      minutes_late: number;
+      notes: string | null;
+    }
+
+    const records = data as unknown as AttendanceRow[];
+
+    return records.map((record) => ({
       id: record.id,
       sectionId: record.section_id,
       studentId: record.student_id,
@@ -123,9 +161,8 @@ export class InstructorAttendanceService {
       notes: entry.notes,
     }));
 
-    const { error } = await (supabase
-      .from('attendance_records')
-      .upsert(upsertPayload, { onConflict: 'section_id,student_id,attendance_date' }) as any);
+    const { error } = await (supabase.from('attendance_records') as any)
+      .upsert(upsertPayload, { onConflict: 'section_id,student_id,attendance_date' });
     if (error) throw error;
   }
 }

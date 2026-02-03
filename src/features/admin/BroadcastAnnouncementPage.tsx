@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 export function BroadcastAnnouncementPage() {
-    useAuth();
+    const { user } = useAuth();
     const [title, setTitle] = useState('');
     const [message, setMessage] = useState('');
     const [category, setCategory] = useState<'ACADEMIC' | 'EVENT' | 'CLUB' | 'DEPARTMENT' | 'GENERAL'>('GENERAL');
@@ -32,7 +32,9 @@ export function BroadcastAnnouncementPage() {
 
         try {
             // Get current user ID (admin)
-            const userId = 'admin-user-id'; // Would come from auth context
+            const userId = user?.id; // Would come from auth context
+
+            if (!userId) throw new Error('User not authenticated');
 
             const announcement = {
                 title,
@@ -55,8 +57,9 @@ export function BroadcastAnnouncementPage() {
             setPriority('NORMAL');
             setTargetAudience('ALL');
             setExpiresAt('');
-        } catch (error: any) {
-            setResult({ type: 'error', text: error.message || 'Failed to broadcast announcement' });
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to broadcast announcement';
+            setResult({ type: 'error', text: errorMessage });
         } finally {
             setSending(false);
         }

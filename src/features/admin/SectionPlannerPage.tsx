@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { services } from '../../services/serviceLocator';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -33,15 +33,39 @@ interface PlannerSection {
     instructorName?: string;
 }
 
+interface ReferenceTerm {
+    id: string;
+    name: string;
+}
+
+interface ReferenceRoom {
+    id: string;
+    code: string;
+    capacity: number;
+    name?: string;
+}
+
+interface ReferenceCourse {
+    id: string;
+    code: string;
+    name: string;
+}
+
+interface ReferenceInstructor {
+    id: string;
+    first_name: string;
+    last_name: string;
+}
+
 export function SectionPlannerPage() {
     const { canWrite } = useMaintenance();
 
-    const [terms, setTerms] = useState<any[]>([]);
+    const [terms, setTerms] = useState<ReferenceTerm[]>([]);
     const [selectedTermId, setSelectedTermId] = useState('');
     const [sections, setSections] = useState<PlannerSection[]>([]);
-    const [rooms, setRooms] = useState<any[]>([]);
-    const [courses, setCourses] = useState<any[]>([]);
-    const [instructors, setInstructors] = useState<any[]>([]);
+    const [rooms, setRooms] = useState<ReferenceRoom[]>([]);
+    const [courses, setCourses] = useState<ReferenceCourse[]>([]);
+    const [instructors, setInstructors] = useState<ReferenceInstructor[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -71,7 +95,7 @@ export function SectionPlannerPage() {
         }
     }, [selectedTermId]);
 
-    async function loadInitialData() {
+    const loadInitialData = useCallback(async () => {
         setLoading(true);
         try {
             const [termsData, roomsData, coursesData, instructorsData] = await Promise.all([
@@ -96,16 +120,26 @@ export function SectionPlannerPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
-    async function loadSections(termId: string) {
+    const loadSections = useCallback(async (termId: string) => {
         try {
             const data = await services.sectionPlannerService.fetchSections(termId);
             setSections(data);
         } catch (error) {
             console.error('Error loading sections:', error);
         }
-    }
+    }, []);
+
+    useEffect(() => {
+        loadInitialData();
+    }, [loadInitialData]);
+
+    useEffect(() => {
+        if (selectedTermId) {
+            loadSections(selectedTermId);
+        }
+    }, [selectedTermId, loadSections]);
 
     async function validateSchedule() {
         if (!formData.room_id || !formData.start_time || !formData.end_time || formData.schedule_days.length === 0) return;
@@ -396,8 +430,8 @@ export function SectionPlannerPage() {
                                             type="button"
                                             onClick={() => toggleDay(day)}
                                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${formData.schedule_days.includes(day)
-                                                    ? 'bg-blue-600 text-white shadow-sm'
-                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                ? 'bg-blue-600 text-white shadow-sm'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {day}

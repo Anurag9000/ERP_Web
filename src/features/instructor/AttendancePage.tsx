@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
@@ -28,21 +28,7 @@ export function AttendancePage() {
   const [message, setMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    loadSections();
-  }, [user]);
-
-  useEffect(() => {
-    if (!selectedSectionId) return;
-    loadRosterAndHistory(selectedSectionId);
-  }, [selectedSectionId]);
-
-  useEffect(() => {
-    hydrateDraftRecords();
-  }, [roster, history, selectedDate]);
-
-  async function loadSections() {
+  const loadSections = useCallback(async () => {
     if (!user) return;
     try {
       setLoading(true);
@@ -57,9 +43,9 @@ export function AttendancePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user, selectedSectionId]);
 
-  async function loadRosterAndHistory(sectionId: string) {
+  const loadRosterAndHistory = useCallback(async (sectionId: string) => {
     try {
       setLoading(true);
       const [rosterData, historyData] = await Promise.all([
@@ -74,7 +60,23 @@ export function AttendancePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadSections();
+    }
+  }, [user, loadSections]);
+
+  useEffect(() => {
+    if (selectedSectionId) {
+      loadRosterAndHistory(selectedSectionId);
+    }
+  }, [selectedSectionId, loadRosterAndHistory]);
+
+  useEffect(() => {
+    hydrateDraftRecords();
+  }, [roster, history, selectedDate]);
 
   function hydrateDraftRecords() {
     if (!roster.length) {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { supabase } from '../../lib/supabase';
@@ -63,79 +63,7 @@ export function InstructorDashboardPage() {
   const [analytics, setAnalytics] = useState<InstructorAnalytics>(defaultAnalytics);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadDashboard();
-    }
-  }, [user]);
-
-  async function loadDashboard() {
-    setLoading(true);
-    try {
-      const { data: sectionData } = await supabase
-        .from('sections')
-        .select(
-          `
-            id,
-            section_number,
-            capacity,
-            enrolled_count,
-            schedule_days,
-            start_time,
-            end_time,
-            rooms(code),
-            courses(code, name)
-          `
-        )
-        .eq('instructor_id', user!.id)
-        .eq('is_active', true)
-        .order('courses(code)');
-
-      const resolvedSections = (sectionData as InstructorSection[] | null) ?? [];
-      const sectionIds = resolvedSections.map((section) => section.id);
-
-      const [enrollmentCount, notificationsCount] = await Promise.all([
-        sectionIds.length
-          ? supabase
-            .from('enrollments')
-            .select('id', { count: 'exact', head: true })
-            .eq('status', 'ACTIVE')
-            .in('section_id', sectionIds)
-          : Promise.resolve({ count: 0 } as { count: number | null }),
-        supabase
-          .from('notifications')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user!.id)
-          .eq('is_read', false),
-      ]);
-
-      setSections(resolvedSections);
-      setStats({
-        activeSections: resolvedSections.length,
-        totalStudents: enrollmentCount?.count ?? 0,
-        gradingDue: 0,
-        unreadNotifications: notificationsCount.count ?? 0,
-      });
-
-      // Better: Count unique assessments with ungraded submissions
-      const { data: ungradedData } = await supabase
-        .from('grades')
-        .select('id', { count: 'exact', head: true })
-        .is('marks_obtained', null)
-        .in('assessments.section_id', sectionIds);
-
-      if (ungradedData) {
-        setStats(prev => ({ ...prev, gradingDue: (ungradedData as any).count ?? 0 }));
-      }
-      await loadAnalytics(resolvedSections.map((section) => section.id));
-    } catch (error) {
-      console.error('Error loading instructor dashboard:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadAnalytics(sectionIds: string[]) {
+  const loadAnalytics = useCallback(async (sectionIds: string[]) => {
     if (!sectionIds.length) {
       setAnalytics(defaultAnalytics);
       return;
@@ -208,7 +136,80 @@ export function InstructorDashboardPage() {
       console.error('Error loading analytics', error);
       setAnalytics(defaultAnalytics);
     }
-  }
+  }, []);
+
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data: sectionData } = await supabase
+        .from('sections')
+        .select(
+          `
+            id,
+            section_number,
+            capacity,
+            enrolled_count,
+            schedule_days,
+            start_time,
+            end_time,
+            rooms(code),
+            courses(code, name)
+          `
+        )
+        .eq('instructor_id', user!.id)
+        .eq('is_active', true)
+        .order('courses(code)');
+
+      const resolvedSections = (sectionData as InstructorSection[] | null) ?? [];
+      const sectionIds = resolvedSections.map((section) => section.id);
+
+      const [enrollmentCount, notificationsCount] = await Promise.all([
+        sectionIds.length
+          ? supabase
+            .from('enrollments')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'ACTIVE')
+            .in('section_id', sectionIds)
+          : Promise.resolve({ count: 0 } as { count: number | null }),
+        supabase
+          .from('notifications')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user!.id)
+          .eq('is_read', false),
+      ]);
+
+      setSections(resolvedSections);
+      setStats({
+        activeSections: resolvedSections.length,
+        totalStudents: enrollmentCount?.count ?? 0,
+        gradingDue: 0,
+        unreadNotifications: notificationsCount.count ?? 0,
+      });
+
+      // Better: Count unique assessments with ungraded submissions
+      const { data: ungradedData } = await supabase
+        .from('grades')
+        .select('id', { count: 'exact', head: true })
+        .is('marks_obtained', null)
+        .in('assessments.section_id', sectionIds);
+
+      if (ungradedData) {
+        setStats(prev => ({ ...prev, gradingDue: ungradedData.count ?? 0 }));
+      }
+      await loadAnalytics(resolvedSections.map((section) => section.id));
+    } catch (error) {
+      console.error('Error loading instructor dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, loadAnalytics]);
+
+  useEffect(() => {
+    if (user) {
+      loadDashboard();
+    }
+  }, [user, loadDashboard]);
+
 
   const topSections = useMemo(() => sections.slice(0, 5), [sections]);
 

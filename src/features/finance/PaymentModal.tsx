@@ -38,8 +38,9 @@ export function PaymentModal({ fee, onClose, onSuccess }: PaymentModalProps) {
                 onSuccess();
                 onClose();
             }, 1500);
-        } catch (err: any) {
-            setError(err.message || 'Payment failed');
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Payment failed';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

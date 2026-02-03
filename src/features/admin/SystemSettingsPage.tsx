@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
@@ -32,13 +32,7 @@ export function SystemSettingsPage() {
 
   const isAdmin = profile?.role === 'ADMIN' || profile?.role === 'STAFF';
 
-  useEffect(() => {
-    if (isAdmin) {
-      loadSettings();
-    }
-  }, [isAdmin]);
-
-  async function loadSettings() {
+  const loadSettings = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     try {
@@ -59,7 +53,13 @@ export function SystemSettingsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadSettings();
+    }
+  }, [isAdmin, loadSettings]);
 
   async function toggleMaintenance() {
     if (!canWrite) {

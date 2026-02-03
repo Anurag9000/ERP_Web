@@ -1,0 +1,68 @@
+﻿
+> vite-react-typescript-starter@0.0.0 typecheck
+> tsc --noEmit -p tsconfig.app.json
+
+src/features/student/RegistrationPage.tsx(376,25): error TS18048: 'entry.sections' is possibly 'undefined'.
+src/features/student/RegistrationPage.tsx(376,73): error TS18048: 'entry.sections' is possibly 'undefined'.
+src/features/student/RegistrationPage.tsx(380,50): error TS18048: 'entry.sections' is possibly 'undefined'.
+src/services/EnrollmentService.ts(203,60): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "enrollments", never, "POST">', gave the following error.
+    Argument of type '{ student_id: string; section_id: string; term_id: string; status: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "enrollments", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'student_id' does not exist in type 'never[]'.
+src/services/EnrollmentService.ts(213,17): error TS2345: Argument of type '{ enrolled_count: number; }' is not assignable to parameter of type 'never'.
+src/services/EnrollmentService.ts(225,71): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "waitlists", never, "POST">', gave the following error.
+    Argument of type '{ student_id: string; section_id: string; term_id: string; position: number; status: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "waitlists", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'student_id' does not exist in type 'never[]'.
+src/services/EnrollmentService.ts(236,15): error TS2345: Argument of type '{ waitlist_count: number; }' is not assignable to parameter of type 'never'.
+src/services/EnrollmentService.ts(269,60): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "enrollments", never, "POST">', gave the following error.
+    Argument of type '{ student_id: string; section_id: string; term_id: string; status: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "enrollments", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'student_id' does not exist in type 'never[]'.
+src/services/EnrollmentService.ts(285,15): error TS2345: Argument of type '{ enrolled_count: number; }' is not assignable to parameter of type 'never'.
+src/services/EnrollmentService.ts(290,7): error TS2561: Object literal may only specify known properties, but 'user_id' does not exist in type 'AuditPayload'. Did you mean to write 'userId'?
+src/services/EnrollmentService.ts(303,15): error TS2345: Argument of type '{ status: string; }' is not assignable to parameter of type 'never'.
+src/services/EnrollmentService.ts(310,17): error TS2345: Argument of type '{ enrolled_count: number; }' is not assignable to parameter of type 'never'.
+src/services/EnrollmentService.ts(325,17): error TS2345: Argument of type '{ waitlist_count: number; }' is not assignable to parameter of type 'never'.
+src/services/EnrollmentService.ts(329,7): error TS2561: Object literal may only specify known properties, but 'user_id' does not exist in type 'AuditPayload'. Did you mean to write 'userId'?
+src/services/EnrollmentService.ts(409,39): error TS2339: Property 'department_id' does not exist on type 'never'.
+src/services/EnrollmentService.ts(411,49): error TS2339: Property 'department_id' does not exist on type 'never'.
+src/services/EnrollmentService.ts(473,66): error TS2339: Property 'student_id' does not exist on type 'never'.
+src/services/EnrollmentService.ts(480,47): error TS2339: Property 'student_id' does not exist on type 'never'.
+src/services/EnrollmentService.ts(481,47): error TS2339: Property 'student_id' does not exist on type 'never'.
+src/services/EnrollmentService.ts(484,21): error TS2339: Property 'student_id' does not exist on type 'never'.
+src/services/EnrollmentService.ts(494,73): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "enrollments", never, "POST">', gave the following error.
+    Argument of type '{ student_id: any; section_id: string; term_id: any; status: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "enrollments", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'student_id' does not exist in type 'never[]'.
+src/services/EnrollmentService.ts(495,31): error TS2339: Property 'student_id' does not exist on type 'never'.
+src/services/EnrollmentService.ts(507,17): error TS2345: Argument of type '{ status: string; promoted_at: string; }' is not assignable to parameter of type 'never'.
+src/services/EnrollmentService.ts(508,29): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/EnrollmentService.ts(511,45): error TS2339: Property 'student_id' does not exist on type 'never'.
+src/services/EnrollmentService.ts(517,17): error TS2345: Argument of type '{ waitlist_count: number; }' is not assignable to parameter of type 'never'.
+src/services/ImportExportService.test.ts(28,56): error TS2345: Argument of type '{ first_name: string; }[]' is not assignable to parameter of type 'StudentImportRow[]'.
+  Type '{ first_name: string; }' is missing the following properties from type 'StudentImportRow': student_id, last_name, email
+src/services/ImportExportService.ts(3,1): error TS6133: 'Database' is declared but its value is never read.
+src/services/ImportExportService.ts(189,22): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "user_profiles", never, "POST">', gave the following error.
+    Argument of type '{ id: string; role: string; first_name: string; last_name: string; email: string; student_id: string; phone: string | null; is_active: boolean; must_change_password: boolean; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "user_profiles", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'id' does not exist in type 'never[]'.
+src/services/ImportExportService.ts(241,42): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/ImportExportService.ts(263,22): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "courses", never, "POST">', gave the following error.
+    Argument of type '{ code: string; name: string; description: string | null; credits: number; department_id: string; is_active: boolean; level: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "courses", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'code' does not exist in type 'never[]'.
+src/services/ImportExportService.ts(328,22): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "enrollments", never, "POST">', gave the following error.
+    Argument of type '{ student_id: any; section_id: any; term_id: any; status: string; grade: string | null; enrolled_at: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "enrollments", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'student_id' does not exist in type 'never[]'.
+src/services/ImportExportService.ts(329,45): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/ImportExportService.ts(330,45): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/ImportExportService.ts(331,42): error TS2339: Property 'term_id' does not exist on type 'never'.

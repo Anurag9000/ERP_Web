@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -31,19 +31,7 @@ export function GradebookPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadSections();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && selectedSection) {
-      loadSectionData(selectedSection);
-    }
-  }, [user, selectedSection]);
-
-  async function loadSections() {
+  const loadSections = useCallback(async () => {
     setLoadingSections(true);
     try {
       const list = await services.gradebookService.listSections(user!.id);
@@ -54,9 +42,9 @@ export function GradebookPage() {
     } finally {
       setLoadingSections(false);
     }
-  }
+  }, [user]);
 
-  async function loadSectionData(sectionId: string) {
+  const loadSectionData = useCallback(async (sectionId: string) => {
     setLoadingSectionData(true);
     setMessage(null);
     try {
@@ -83,7 +71,19 @@ export function GradebookPage() {
     } finally {
       setLoadingSectionData(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadSections();
+    }
+  }, [user, loadSections]);
+
+  useEffect(() => {
+    if (user && selectedSection) {
+      loadSectionData(selectedSection);
+    }
+  }, [user, selectedSection, loadSectionData]);
 
   function handleGradeInputChange(studentId: string, assessmentId: string, value: string) {
     const key = gradeKey(studentId, assessmentId);
@@ -120,9 +120,9 @@ export function GradebookPage() {
       setGradeMap((prev) => ({
         ...prev,
         [key]: {
-          id: (data as any).id,
+          id: data.id,
           marks,
-          status: (data as any).status || 'GRADED',
+          status: data.status || 'GRADED',
         },
       }));
       setMessage('Grade saved.');
@@ -132,7 +132,7 @@ export function GradebookPage() {
     }
   }
 
-  function calculateWeightedScore(studentId: string) {
+  const calculateWeightedScore = useCallback((studentId: string) => {
     let earnedPoints = 0;
     let totalpossibleWeight = 0;
 
@@ -148,7 +148,7 @@ export function GradebookPage() {
 
     if (totalpossibleWeight === 0) return 0;
     return Math.round((earnedPoints / totalpossibleWeight) * 100);
-  }
+  }, [assessments, gradeMap]);
 
   const summaryStats = useMemo(() => {
     const totalGrades = Object.values(gradeMap).filter((grade) => grade.marks !== null).length;
@@ -166,7 +166,7 @@ export function GradebookPage() {
       averageWeighted,
       assessments: assessments.length,
     };
-  }, [assessments, students, gradeMap]);
+  }, [assessments, students, gradeMap, calculateWeightedScore]);
 
   const assessmentStats = useMemo(() => {
     return assessments.map((assessment) => {

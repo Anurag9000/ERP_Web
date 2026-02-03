@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface MaintenanceContextValue {
@@ -17,30 +16,27 @@ const MaintenanceContext = createContext<MaintenanceContextValue>({
 export function MaintenanceProvider({ children }: { children: React.ReactNode }) {
   const [maintenanceActive, setMaintenanceActive] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('');
-  const [allowedRoles, setAllowedRoles] = useState<string[]>(['ADMIN', 'STAFF']);
+  const [allowedRoles] = useState<string[]>(['ADMIN', 'STAFF']);
   const [currentRole, setCurrentRole] = useState<string | null>(null);
 
-  useEffect(() => {
-    checkMaintenance();
-    const interval = setInterval(checkMaintenance, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  async function checkMaintenance() {
+  const checkMaintenance = useCallback(async () => {
     try {
       const { data } = await supabase.from('system_settings').select('value').eq('key', 'maintenance_mode').maybeSingle();
-      if (data?.value === 'true') {
+      const setting = data as { value: string } | null;
+      if (setting?.value === 'true') {
         setMaintenanceActive(true);
         setMaintenanceMessage('The system is in maintenance mode. Write actions are currently disabled.');
         return;
       }
 
-      const { data: window } = await supabase
+      const { data: windowData } = await supabase
         .from('maintenance_windows')
         .select('*')
         .eq('is_active', true)
         .gte('end_time', new Date().toISOString())
         .maybeSingle();
+
+      const window = windowData as { start_time: string } | null;
 
       if (window) {
         const startTime = new Date(window.start_time);
@@ -60,7 +56,13 @@ export function MaintenanceProvider({ children }: { children: React.ReactNode })
     } catch (error) {
       console.error('Error checking maintenance mode:', error);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    checkMaintenance();
+    const interval = setInterval(checkMaintenance, 60000);
+    return () => clearInterval(interval);
+  }, [checkMaintenance]);
 
   useEffect(() => {
     const channel = supabase
@@ -71,7 +73,7 @@ export function MaintenanceProvider({ children }: { children: React.ReactNode })
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [checkMaintenance]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {

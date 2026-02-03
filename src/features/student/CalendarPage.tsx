@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -32,44 +32,45 @@ export function CalendarPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-    useEffect(() => {
-        if (user) {
-            loadEvents();
-        }
-    }, [user, currentDate]);
-
-    async function loadEvents() {
+    const loadEvents = useCallback(async () => {
         try {
             // In a real app, we'd fetch events for the current month
             const schedule = await services.calendarService.fetchStudentSchedule(user!.id);
             const academicEvents = await services.calendarService.fetchUpcomingEvents(user!.id);
 
             // Combine and format events
-            const combined = [
+            const combined: CalendarEvent[] = [
                 ...schedule.map(s => ({
                     ...s,
-                    type: 'class',
+                    id: s.id || `class-${s.course_code}`,
+                    type: 'class' as const,
                     title: s.course_name,
                     color: 'blue'
                 })),
                 ...academicEvents.map(e => ({
                     ...e,
-                    type: 'event',
+                    type: 'event' as const,
                     title: e.title,
                     color: 'purple'
                 }))
             ];
-            setEvents(combined as any);
+            setEvents(combined);
         } catch (error) {
             console.error('Error loading calendar events:', error);
         }
-    }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            loadEvents();
+        }
+    }, [user, currentDate, loadEvents]);
 
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
     const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-    const padding = Array.from({ length: firstDayOfMonth }, () => null);
+    const padding: (number | null)[] = Array.from({ length: firstDayOfMonth }, () => null);
 
     const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
     const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
@@ -111,7 +112,7 @@ export function CalendarPage() {
                             ))}
                         </div>
                         <div className="grid grid-cols-7 divide-x divide-y divide-gray-200">
-                            {padding.concat(days as any).map((day, idx) => (
+                            {padding.concat(days).map((day, idx) => (
                                 <div key={idx} className="min-h-[120px] p-2 hover:bg-gray-50 transition-colors group">
                                     {day && (
                                         <>

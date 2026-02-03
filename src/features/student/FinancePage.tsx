@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode, useCallback } from 'react';
 import { Loader2, Wallet, AlertTriangle, CalendarClock, CheckCircle2, CreditCard } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
@@ -19,13 +19,7 @@ export function FinancePage() {
   // Payment Modal State
   const [selectedFee, setSelectedFee] = useState<StudentFee | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadFinance();
-    }
-  }, [user]);
-
-  async function loadFinance() {
+  const loadFinance = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     setMessage(null);
@@ -42,7 +36,13 @@ export function FinancePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadFinance();
+    }
+  }, [user, loadFinance]);
 
   const totals = useMemo(() => {
     const outstanding = fees.reduce((acc, fee) => acc + (fee.amount - (fee.amount_paid || 0)), 0);

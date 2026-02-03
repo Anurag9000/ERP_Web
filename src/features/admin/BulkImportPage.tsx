@@ -73,12 +73,13 @@ export function BulkImportPage() {
                 setPreview([]);
                 if (fileInputRef.current) fileInputRef.current.value = '';
             }
-        } catch (error: any) {
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Import failed';
             setResult({
                 success: false,
                 imported: 0,
                 failed: 0,
-                errors: [error.message]
+                errors: [errorMessage]
             });
         } finally {
             setImporting(false);

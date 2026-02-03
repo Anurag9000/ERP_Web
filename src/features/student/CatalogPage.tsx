@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -39,6 +39,13 @@ interface Section {
   } | null;
 }
 
+interface Department {
+  id: string;
+  code: string;
+  name: string;
+  is_active: boolean;
+}
+
 export function CatalogPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [filteredSections, setFilteredSections] = useState<Section[]>([]);
@@ -46,18 +53,10 @@ export function CatalogPage() {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
   const [showOpenOnly, setShowOpenOnly] = useState(false);
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadCatalogData();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [sections, searchQuery, selectedDepartment, selectedLevel, showOpenOnly]);
-
-  async function loadCatalogData() {
+  const loadCatalogData = useCallback(async () => {
     try {
       const [sectionsData, departmentsData] = await Promise.all([
         supabase
@@ -84,14 +83,22 @@ export function CatalogPage() {
           .order('name'),
       ]);
 
-      setSections(sectionsData.data || []);
-      setDepartments(departmentsData.data || []);
+      setSections(sectionsData.data as any || []);
+      setDepartments(departmentsData.data as Department[] || []);
     } catch (error) {
       console.error('Error loading catalog:', error);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    loadCatalogData();
+  }, [loadCatalogData]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [sections, searchQuery, selectedDepartment, selectedLevel, showOpenOnly]);
 
   function applyFilters() {
     let filtered = [...sections];

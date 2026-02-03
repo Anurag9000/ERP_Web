@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../../components/common/Card';
 import { Select } from '../../components/common/Select';
 import { services } from '../../services/serviceLocator';
@@ -19,27 +19,59 @@ import {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+interface EnrollmentTrend {
+    department: string;
+    enrolled: number;
+    capacity: number;
+    utilizationRate: number;
+    [key: string]: any;
+}
+
+interface WaitlistPressure {
+    courseCode: string;
+    sectionNumber: string;
+    waitlisted: number;
+    pressureScore: number;
+    [key: string]: any;
+}
+
+interface FinancialArrears {
+    studentName: string;
+    studentId: string;
+    outstanding: number;
+    overdueCount: number;
+}
+
+interface AttendanceCompliance {
+    courseCode: string;
+    sectionNumber: string;
+    totalStudents: number;
+    averageAttendance: number;
+    belowThreshold: number;
+}
+
+interface EnrollmentStats {
+    totalEnrolled: number;
+    utilizationRate: number;
+    totalWaitlisted: number;
+    sectionsCount: number;
+}
+
 export function ReportsPage() {
     const [terms, setTerms] = useState<any[]>([]);
     const [selectedTerm, setSelectedTerm] = useState('');
 
-    const [enrollmentTrends, setEnrollmentTrends] = useState<any[]>([]);
-    const [waitlistPressure, setWaitlistPressure] = useState<any[]>([]);
-    const [financialArrears, setFinancialArrears] = useState<any[]>([]);
-    const [attendanceCompliance, setAttendanceCompliance] = useState<any[]>([]);
-    const [enrollmentStats, setEnrollmentStats] = useState<any>(null);
+    const [enrollmentTrends, setEnrollmentTrends] = useState<EnrollmentTrend[]>([]);
+    const [waitlistPressure, setWaitlistPressure] = useState<WaitlistPressure[]>([]);
+    const [financialArrears, setFinancialArrears] = useState<FinancialArrears[]>([]);
+    const [attendanceCompliance, setAttendanceCompliance] = useState<AttendanceCompliance[]>([]);
+    const [enrollmentStats, setEnrollmentStats] = useState<EnrollmentStats | null>(null);
 
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         loadTerms();
     }, []);
-
-    useEffect(() => {
-        if (selectedTerm) {
-            loadReports();
-        }
-    }, [selectedTerm]);
 
     async function loadTerms() {
         try {
@@ -57,7 +89,7 @@ export function ReportsPage() {
         }
     }
 
-    async function loadReports() {
+    const loadReports = useCallback(async () => {
         setLoading(true);
         try {
             const [trends, pressure, arrears, compliance, stats] = await Promise.all([
@@ -78,7 +110,13 @@ export function ReportsPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [selectedTerm]);
+
+    useEffect(() => {
+        if (selectedTerm) {
+            loadReports();
+        }
+    }, [selectedTerm, loadReports]);
 
     if (loading && !enrollmentStats) {
         return (

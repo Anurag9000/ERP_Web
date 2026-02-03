@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/common/Card';
@@ -48,13 +48,7 @@ export function GradesPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     try {
@@ -120,7 +114,13 @@ export function GradesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   const summary = useMemo(() => {
     const completed = enrollments.filter((enrollment) => enrollment.status === 'COMPLETED');
@@ -267,9 +267,8 @@ export function GradesPage() {
               {enrollments.map((enrollment) => (
                 <tr
                   key={enrollment.id}
-                  className={`cursor-pointer ${
-                    selectedSection === enrollment.sections?.id ? 'bg-blue-50' : ''
-                  }`}
+                  className={`cursor-pointer ${selectedSection === enrollment.sections?.id ? 'bg-blue-50' : ''
+                    }`}
                   onClick={() => setSelectedSection(enrollment.sections?.id ?? null)}
                 >
                   <td className="px-4 py-3 font-medium text-gray-900">

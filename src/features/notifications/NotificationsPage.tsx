@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -29,12 +29,12 @@ interface NotificationPreference {
 export function NotificationsPage() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [priorityFilter, setPriorityFilter] = useState('ALL');
   const [maintenanceOnly, setMaintenanceOnly] = useState(false);
-  const [loading, setLoading] = useState(true);
+
   const [preferences, setPreferences] = useState<Record<string, NotificationPreference>>({});
   const [savingPreference, setSavingPreference] = useState(false);
 
@@ -51,21 +51,9 @@ export function NotificationsPage() {
     'ENROLLMENT',
   ];
 
-  useEffect(() => {
-    if (!user) return;
-    loadNotifications();
-    loadPreferences();
-    const unsubscribe = subscribeToNotifications();
-    return () => {
-      unsubscribe?.();
-    };
-  }, [user]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [notifications, selectedCategory, showUnreadOnly, priorityFilter, maintenanceOnly]);
 
-  async function loadNotifications() {
+  const loadNotifications = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('notifications')
@@ -81,9 +69,9 @@ export function NotificationsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
 
-  function subscribeToNotifications() {
+  const subscribeToNotifications = useCallback(() => {
     if (!user) return;
     const subscription = supabase
       .channel('notifications')
@@ -104,9 +92,9 @@ export function NotificationsPage() {
     return () => {
       subscription.unsubscribe();
     };
-  }
+  }, [user]);
 
-  async function loadPreferences() {
+  const loadPreferences = useCallback(async () => {
     if (!user) return;
     try {
       const { data, error } = await (supabase
@@ -127,7 +115,7 @@ export function NotificationsPage() {
     } catch (error) {
       console.error('Error loading notification preferences:', error);
     }
-  }
+  }, [user]);
 
   async function updatePreference(category: string, updates: Partial<NotificationPreference>) {
     if (!user) return;
@@ -167,7 +155,7 @@ export function NotificationsPage() {
     }
   }
 
-  function applyFilters() {
+  const filteredNotifications = useMemo(() => {
     let filtered = [...notifications];
 
     if (selectedCategory !== 'ALL') {
@@ -186,8 +174,18 @@ export function NotificationsPage() {
       filtered = filtered.filter((notif) => notif.priority === priorityFilter);
     }
 
-    setFilteredNotifications(filtered);
-  }
+    return filtered;
+  }, [notifications, selectedCategory, maintenanceOnly, showUnreadOnly, priorityFilter]);
+
+  useEffect(() => {
+    if (!user) return;
+    loadNotifications();
+    loadPreferences();
+    const unsubscribe = subscribeToNotifications();
+    return () => {
+      unsubscribe?.();
+    };
+  }, [user, loadNotifications, loadPreferences, subscribeToNotifications]);
 
   async function markAsRead(notificationId: string) {
     try {

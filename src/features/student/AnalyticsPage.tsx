@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { Card } from '../../components/common/Card';
 import { Loader2, TrendingUp, AlertTriangle, ArrowDownRight, ArrowUpRight, Activity, CheckCircle2 } from 'lucide-react';
@@ -42,13 +42,7 @@ export function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadAnalytics();
-    }
-  }, [user]);
-
-  async function loadAnalytics() {
+  const loadAnalytics = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     try {
@@ -60,7 +54,13 @@ export function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadAnalytics();
+    }
+  }, [user, loadAnalytics]);
 
   if (loading) {
     return (
