@@ -56,7 +56,7 @@ export class AssignmentService {
                 name: assessment.name,
                 description: assessment.description,
                 dueDate: new Date(assessment.due_date),
-                maxMarks: assessment.max_marks || 100,
+                maxMarks: assessment.max_marks ?? 0,
                 courseCode: assessment.sections?.courses?.code || '',
                 courseName: assessment.sections?.courses?.name || '',
                 sectionNumber: assessment.sections?.section_number || '',
@@ -88,6 +88,9 @@ export class AssignmentService {
                 .single();
 
             if (assessmentError) throw assessmentError;
+            if (!assessment) {
+                return { success: false, error: 'Assessment not found' };
+            }
 
             // Get the specific enrollment for this section and student
             const { data: enrollment, error: enrollError } = await supabase
@@ -98,6 +101,9 @@ export class AssignmentService {
                 .single();
 
             if (enrollError) throw enrollError;
+            if (!enrollment) {
+                return { success: false, error: 'Enrollment not found' };
+            }
 
             // Create or update grade record
             const { error: gradeError } = await supabase
