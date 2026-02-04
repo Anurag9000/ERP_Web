@@ -24,7 +24,7 @@ interface EnrollmentTrend {
     enrolled: number;
     capacity: number;
     utilizationRate: number;
-    [key: string]: any;
+    [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 interface WaitlistPressure {
@@ -32,7 +32,7 @@ interface WaitlistPressure {
     sectionNumber: string;
     waitlisted: number;
     pressureScore: number;
-    [key: string]: any;
+    [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 interface FinancialArrears {
@@ -58,7 +58,7 @@ interface EnrollmentStats {
 }
 
 export function ReportsPage() {
-    const [terms, setTerms] = useState<any[]>([]);
+    const [terms, setTerms] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [selectedTerm, setSelectedTerm] = useState('');
 
     const [enrollmentTrends, setEnrollmentTrends] = useState<EnrollmentTrend[]>([]);
@@ -78,7 +78,7 @@ export function ReportsPage() {
             const data = await services.sectionPlannerService.fetchTerms();
             setTerms(data);
 
-            const currentTerm = data.find((t: any) => t.is_current);
+            const currentTerm = data.find((t: any) => t.is_current); // eslint-disable-line @typescript-eslint/no-explicit-any
             if (currentTerm) {
                 setSelectedTerm(currentTerm.id);
             } else if (data.length > 0) {
@@ -228,7 +228,7 @@ export function ReportsPage() {
                                 cx="50%"
                                 cy="50%"
                                 outerRadius={100}
-                                label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`} // eslint-disable-line @typescript-eslint/no-explicit-any
                             >
                                 {enrollmentTrends.slice(0, 5).map((_entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

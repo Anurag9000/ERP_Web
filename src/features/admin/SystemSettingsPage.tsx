@@ -37,12 +37,12 @@ export function SystemSettingsPage() {
     setMessage(null);
     try {
       const [{ data: setting }, { data: windowRows }] = await Promise.all([
-        (supabase.from('system_settings').select('value').eq('key', 'maintenance_mode').maybeSingle() as any),
+        (supabase.from('system_settings').select('value').eq('key', 'maintenance_mode').maybeSingle() as any), // eslint-disable-line @typescript-eslint/no-explicit-any
         (supabase
           .from('maintenance_windows')
           .select('id, title, start_time, end_time, is_active')
           .order('start_time', { ascending: false })
-          .limit(5) as any),
+          .limit(5) as any), // eslint-disable-line @typescript-eslint/no-explicit-any
       ]);
 
       setMaintenanceEnabled(setting?.value === 'true');
@@ -72,7 +72,7 @@ export function SystemSettingsPage() {
       const next = !maintenanceEnabled;
       const { error } = await (supabase
         .from('system_settings')
-        .upsert({ key: 'maintenance_mode', value: next ? 'true' : 'false' } as any) as any);
+        .upsert({ key: 'maintenance_mode', value: next ? 'true' : 'false' } as any) as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       if (error) throw error;
       setMaintenanceEnabled(next);
       if (profile?.id) {
@@ -107,7 +107,7 @@ export function SystemSettingsPage() {
         is_active: true,
         created_by: profile?.id || '',
       };
-      const { data, error } = await (supabase.from('maintenance_windows').insert(payload as any).select('id').single() as any);
+      const { data, error } = await (supabase.from('maintenance_windows').insert(payload as any).select('id').single() as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       if (error) throw error;
       if (profile?.id && data?.id) {
         await services.auditService.maintenanceWindow(profile.id, data.id);

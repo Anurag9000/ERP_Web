@@ -98,13 +98,13 @@ export function NotificationsPage() {
     if (!user) return;
     try {
       const { data, error } = await (supabase
-        .from('notification_preferences') as any)
+        .from('notification_preferences') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .select('*')
         .eq('user_id', user.id)
         .in('category', ['SYSTEM', 'MAINTENANCE', 'DIGEST']);
       if (error) throw error;
       const next: Record<string, NotificationPreference> = {};
-      (data as any[])?.forEach((pref) => {
+      (data as any[])?.forEach((pref) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         next[pref.category] = {
           category: pref.category,
           enabled: pref.enabled,
@@ -127,7 +127,7 @@ export function NotificationsPage() {
         delivery_method: updates.delivery_method ?? previous?.delivery_method ?? 'IN_APP',
       };
       const { data, error } = await (supabase
-        .from('notification_preferences') as any)
+        .from('notification_preferences') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .upsert(
           {
             user_id: user.id,
@@ -144,8 +144,8 @@ export function NotificationsPage() {
         ...prev,
         [category]: {
           category,
-          enabled: (data as any).enabled,
-          delivery_method: (data as any).delivery_method,
+          enabled: (data as any).enabled, // eslint-disable-line @typescript-eslint/no-explicit-any
+          delivery_method: (data as any).delivery_method, // eslint-disable-line @typescript-eslint/no-explicit-any
         },
       }));
     } catch (error) {
@@ -190,7 +190,7 @@ export function NotificationsPage() {
   async function markAsRead(notificationId: string) {
     try {
       const { error } = await (supabase
-        .from('notifications') as any)
+        .from('notifications') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq('id', notificationId);
 
@@ -215,7 +215,7 @@ export function NotificationsPage() {
       if (unreadIds.length === 0) return;
 
       const { error } = await (supabase
-        .from('notifications') as any)
+        .from('notifications') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .update({ is_read: true, read_at: new Date().toISOString() })
         .in('id', unreadIds);
 

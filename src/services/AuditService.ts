@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { supabase } from '../lib/supabase';
 import type { Json } from '../types/database';
 
@@ -14,13 +14,15 @@ interface AuditPayload {
 export class AuditService {
   async record(payload: AuditPayload) {
     const { userId, action, entityType, entityId = null, oldValues = null, newValues = null } = payload;
-    const { error } = await supabase.from('audit_logs').insert({
+    const { error } = await (supabase as any).from('audit_logs').insert({
       user_id: userId,
       action,
       entity_type: entityType,
       entity_id: entityId,
       old_values: oldValues,
       new_values: newValues,
+      ip_address: null,
+      user_agent: null,
     });
     if (error) {
       console.error('Failed to write audit log', error);

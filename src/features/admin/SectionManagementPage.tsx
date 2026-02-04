@@ -111,8 +111,8 @@ export function SectionManagementPage() {
       setInstructors(instructorResp.data || []);
       setForm((prev) => ({
         ...prev,
-        courseId: (courseResp.data?.[0] as any)?.id || '',
-        termId: (termResp.data?.[0] as any)?.id || '',
+        courseId: (courseResp.data?.[0] as any)?.id || '', // eslint-disable-line @typescript-eslint/no-explicit-any
+        termId: (termResp.data?.[0] as any)?.id || '', // eslint-disable-line @typescript-eslint/no-explicit-any
       }));
     } catch (error) {
       console.error('Error loading sections:', error);
@@ -136,7 +136,7 @@ export function SectionManagementPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const { error } = await (supabase.from('sections') as any).update({ instructor_id: instructorId }).eq('id', sectionId);
+      const { error } = await (supabase.from('sections') as any).update({ instructor_id: instructorId }).eq('id', sectionId); // eslint-disable-line @typescript-eslint/no-explicit-any
       if (error) throw error;
       await loadData();
       setMessage('Instructor assigned.');
@@ -175,7 +175,7 @@ export function SectionManagementPage() {
         is_active: true,
       };
 
-      const { error } = await (supabase.from('sections').insert(payload as any) as any);
+      const { error } = await (supabase.from('sections').insert(payload as any) as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       if (error) throw error;
       setMessage('Section created.');
       setForm((prev) => ({ ...prev, sectionNumber: '', capacity: 30 }));

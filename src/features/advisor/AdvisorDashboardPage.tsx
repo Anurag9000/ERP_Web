@@ -11,7 +11,7 @@ import {
 
 export function AdvisorDashboardPage() {
     const { user } = useAuth();
-    const [riskStudents, setRiskStudents] = useState<any[]>([]);
+    const [riskStudents, setRiskStudents] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

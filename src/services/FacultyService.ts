@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { supabase } from '../lib/supabase';
 
 export interface AppointmentRequest {
@@ -28,7 +28,7 @@ export class FacultyService {
      * Get all instructors
      */
     async fetchInstructors(): Promise<InstructorProfile[]> {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
             .from('user_profiles')
             .select(`
         id,
@@ -45,7 +45,7 @@ export class FacultyService {
 
         if (error) throw error;
 
-        return (data || []).map((prof: any) => ({
+        return (data || []).map((prof: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
             id: prof.id,
             name: `${prof.first_name} ${prof.last_name}`,
             email: prof.email,
@@ -67,7 +67,7 @@ export class FacultyService {
         purpose: string
     ): Promise<{ success: boolean; error?: string }> {
         try {
-            const { error } = await supabase
+            const { error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                 .from('appointment_requests')
                 .insert({
                     student_id: studentId,
@@ -89,7 +89,7 @@ export class FacultyService {
      * Get appointment requests for instructor
      */
     async getInstructorAppointments(instructorId: string): Promise<AppointmentRequest[]> {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
             .from('appointment_requests')
             .select(`
         id,
@@ -132,7 +132,7 @@ export class FacultyService {
         status: 'APPROVED' | 'REJECTED'
     ): Promise<{ success: boolean; error?: string }> {
         try {
-            const { error } = await supabase
+            const { error } = await (supabase as any)
                 .from('appointment_requests')
                 .update({ status })
                 .eq('id', appointmentId);
@@ -153,7 +153,7 @@ export class FacultyService {
         const currentDay = days[now.getDay()];
         const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS
 
-        const { data: section, error } = await supabase
+        const { data: section, error } = await (supabase as any)
             .from('sections')
             .select(`
                 id,
@@ -179,7 +179,7 @@ export class FacultyService {
     /**
      * Determine current status based on office hours (simplified for list view)
      */
-    private determineStatus(officeHours: string): 'AVAILABLE' | 'IN_CLASS' | 'IN_MEETING' | 'UNAVAILABLE' {
+    private determineStatus(_officeHours: string): 'AVAILABLE' | 'IN_CLASS' | 'IN_MEETING' | 'UNAVAILABLE' {
         const now = new Date();
         const hour = now.getHours();
 

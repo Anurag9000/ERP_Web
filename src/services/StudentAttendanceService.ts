@@ -44,7 +44,7 @@ export class StudentAttendanceService {
             attended: number;
         }>();
 
-        (data || []).forEach((record: any) => {
+        (data || []).forEach((record: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             const course = record.enrollments?.sections?.courses;
             if (!course) return;
 

@@ -127,7 +127,8 @@ export function UserManagementPage() {
         profile_image_url: null,
         bio: null,
         office_room: null,
-        office_hours: null
+        office_hours: null,
+        advisor_id: null
       };
 
       const { error } = await (supabase.from('user_profiles') as any).insert(newProfile);

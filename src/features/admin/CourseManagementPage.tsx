@@ -56,7 +56,7 @@ export function CourseManagementPage() {
       if (courseResp.error) throw courseResp.error;
       setDepartments(deptResp.data || []);
       setCourses((courseResp.data as CourseRow[]) || []);
-      setForm((prev) => ({ ...prev, departmentId: (deptResp.data as any)?.[0]?.id || '' }));
+      setForm((prev) => ({ ...prev, departmentId: (deptResp.data as any)?.[0]?.id || '' })); // eslint-disable-line @typescript-eslint/no-explicit-any
     } catch (error) {
       console.error('Error loading courses:', error);
       setMessage('Unable to load course catalog.');
@@ -92,7 +92,7 @@ export function CourseManagementPage() {
         level: form.level,
         is_active: true,
       };
-      const { error } = await (supabase.from('courses') as any).insert(payload);
+      const { error } = await (supabase.from('courses') as any).insert(payload); // eslint-disable-line @typescript-eslint/no-explicit-any
       if (error) throw error;
       setMessage('Course created.');
       setForm((prev) => ({ ...prev, code: '', name: '' }));
@@ -113,7 +113,7 @@ export function CourseManagementPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const { error } = await (supabase.from('courses') as any).update({ is_active: active }).eq('id', courseId);
+      const { error } = await (supabase.from('courses') as any).update({ is_active: active }).eq('id', courseId); // eslint-disable-line @typescript-eslint/no-explicit-any
       if (error) throw error;
       await loadData();
     } catch (error) {

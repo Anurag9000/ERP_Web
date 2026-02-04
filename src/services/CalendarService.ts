@@ -50,9 +50,9 @@ export class CalendarService {
         if (error) throw error;
 
         return (data || [])
-            .map((row: any) => row.sections)
+            .map((row: any) => row.sections) // eslint-disable-line @typescript-eslint/no-explicit-any
             .filter(Boolean)
-            .map((section: any) => ({
+            .map((section: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
                 id: section.id,
                 section_number: section.section_number,
                 start_time: section.start_time,
@@ -101,7 +101,7 @@ export class CalendarService {
             .eq('status', 'ACCEPTED');
 
         if (partError) throw partError;
-        const optedInIds = (participants || []).map((p: any) => p.event_id);
+        const optedInIds = (participants || []).map((p: any) => p.event_id); // eslint-disable-line @typescript-eslint/no-explicit-any
 
         let query = supabase
             .from('calendar_events')
@@ -124,7 +124,7 @@ export class CalendarService {
         const events: CalendarEvent[] = [];
 
         // Map Assessments to Events
-        assessments?.forEach((a: any) => {
+        assessments?.forEach((a: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             if (!a.due_date) return;
             events.push({
                 id: a.id,
@@ -139,7 +139,7 @@ export class CalendarService {
         });
 
         // Map Personal Events
-        personal?.forEach((e: any) => {
+        personal?.forEach((e: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             events.push({
                 id: e.id,
                 title: e.title,
@@ -168,7 +168,7 @@ export class CalendarService {
                         event_id: eventId,
                         user_id: userId,
                         status: 'ACCEPTED'
-                    } as any);
+                    } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
                 if (error) throw error;
             } else {
                 const { error } = await supabase

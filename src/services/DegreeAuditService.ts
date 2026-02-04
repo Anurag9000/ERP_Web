@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { supabase } from '../lib/supabase';
 
 export interface DegreeRequirement {
@@ -29,10 +29,10 @@ export class DegreeAuditService {
      */
     async calculateDegreeProgress(
         studentId: string,
-        programId?: string
+        _programId?: string
     ): Promise<DegreeProgress> {
         // Get completed courses
-        const { data: completedEnrollments, error: completedError } = await supabase
+        const { data: completedEnrollments, error: completedError } = await (supabase as any)
             .from('enrollments')
             .select(`
         grade,
@@ -47,7 +47,7 @@ export class DegreeAuditService {
         if (completedError) throw completedError;
 
         // Get in-progress courses
-        const { data: activeEnrollments, error: activeError } = await supabase
+        const { data: activeEnrollments, error: activeError } = await (supabase as any)
             .from('enrollments')
             .select(`
         sections (
@@ -163,7 +163,7 @@ export class DegreeAuditService {
      */
     async identifyRiskStudents(advisorId: string) {
         // Get advisees
-        const { data: students, error } = await supabase
+        const { data: students, error } = await (supabase as any)
             .from('user_profiles')
             .select('id, student_id, first_name, last_name')
             .eq('advisor_id', advisorId)

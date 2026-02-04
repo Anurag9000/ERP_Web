@@ -14,11 +14,11 @@ import {
 interface Appointment {
     id: string;
     studentName: string;
-    requestedDate: string | Date;
+    requestedDate: Date;
     requestedTime: string;
     purpose: string;
     status: 'PENDING' | 'APPROVED' | 'REJECTED';
-    createdAt: string;
+    createdAt: Date;
 }
 
 export function AppointmentsPage() {

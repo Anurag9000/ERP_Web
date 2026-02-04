@@ -46,9 +46,9 @@ export function AuditLogPage() {
         .limit(200);
 
       if (filter !== 'ALL') {
-        query = query.eq('entity_type', filter) as any;
+        query = query.eq('entity_type', filter) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
       } else {
-        query = query.in('entity_type', trackedEntities) as any;
+        query = query.in('entity_type', trackedEntities) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
       }
 
       const { data, error } = await query;

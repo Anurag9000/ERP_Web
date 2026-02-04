@@ -184,7 +184,7 @@ export class ImportExportService {
 
                 // Then create profile
                 const { error: profileError } = await (supabase
-                    .from('user_profiles') as any)
+                    .from('user_profiles') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                     .insert({
                         id: authUser.user.id,
                         role: 'STUDENT',
@@ -207,7 +207,7 @@ export class ImportExportService {
                 }
 
                 imported++;
-            } catch (error: any) {
+            } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
                 errors.push(`Row ${data.indexOf(row) + 2}: ${error.message}`);
             }
         }
@@ -233,7 +233,7 @@ export class ImportExportService {
                 let departmentId: string | null = null;
                 if (row.department_code) {
                     const { data: dept } = await (supabase
-                        .from('departments') as any)
+                        .from('departments') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                         .select('id')
                         .eq('code', row.department_code)
                         .single();
@@ -259,7 +259,7 @@ export class ImportExportService {
                 }
 
                 const { error } = await (supabase
-                    .from('courses') as any)
+                    .from('courses') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                     .insert({
                         code: row.code,
                         name: row.name,
@@ -300,7 +300,7 @@ export class ImportExportService {
             try {
                 // Find student record
                 const { data: student } = await (supabase
-                    .from('user_profiles') as any)
+                    .from('user_profiles') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                     .select('id')
                     .eq('student_id', row.student_id)
                     .single();
@@ -312,7 +312,7 @@ export class ImportExportService {
 
                 // Find section
                 const { data: section } = await (supabase
-                    .from('sections') as any)
+                    .from('sections') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                     .select('id, term_id, enrolled_count, capacity, courses!inner(code)')
                     .eq('courses.code', row.course_code)
                     .eq('section_number', row.section_number)
@@ -331,7 +331,7 @@ export class ImportExportService {
                 const termIdVal = (section as any).term_id;
 
                 const { error } = await (supabase
-                    .from('enrollments') as any)
+                    .from('enrollments') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                     .insert({
                         student_id: studentIdVal,
                         section_id: sectionIdVal,
@@ -365,7 +365,7 @@ export class ImportExportService {
      */
     async exportStudents(): Promise<string> {
         const { data, error } = await (supabase
-            .from('user_profiles') as any)
+            .from('user_profiles') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
             .select('student_id, first_name, last_name, email, phone')
             .eq('role', 'STUDENT')
             .eq('is_active', true)
@@ -381,7 +381,7 @@ export class ImportExportService {
      */
     async exportCourses(): Promise<string> {
         const { data, error } = await (supabase
-            .from('courses') as any)
+            .from('courses') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
             .select(`
         code,
         name,

@@ -13,8 +13,8 @@ import {
 
 export function GoogleClassroomIntegrationPage() {
     const [authenticated, setAuthenticated] = useState(false);
-    const [googleCourses, setGoogleCourses] = useState<any[]>([]);
-    const [erpCourses, setErpCourses] = useState<any[]>([]);
+    const [googleCourses, setGoogleCourses] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const [erpCourses, setErpCourses] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [mappings, setMappings] = useState<Record<string, string>>({}); // GoogleCourseID -> ERPCourseID
     const [loading, setLoading] = useState(false);
     const [syncing, setSyncing] = useState(false);

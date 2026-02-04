@@ -45,7 +45,7 @@ export class ReportingService {
         departmentId?: string
     ): Promise<EnrollmentTrend[]> {
         let query = (supabase
-            .from('sections') as any)
+            .from('sections') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
             .select(`
         id,
         capacity,
@@ -72,7 +72,7 @@ export class ReportingService {
         // Group by term and department
         const grouped = new Map<string, EnrollmentTrend>();
 
-        (data || []).forEach((section: any) => {
+        (data || []).forEach((section: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             const term = section.terms?.name || 'Unknown';
             const dept = section.courses?.departments?.name || 'Unknown';
             const key = `${term}-${dept}`;
@@ -127,7 +127,7 @@ export class ReportingService {
         const { data, error } = await query;
         if (error) throw error;
 
-        return (data as any[] || []).map((section) => {
+        return (data as any[] || []).map((section) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             const available = (section.capacity || 0) - (section.enrolled_count || 0);
             const waitlisted = section.waitlist_count || 0;
 
@@ -169,7 +169,7 @@ export class ReportingService {
         // Group by student
         const grouped = new Map<string, FinancialArrear>();
 
-        (data as any[] || []).forEach((fee) => {
+        (data as any[] || []).forEach((fee) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             const studentId = fee.user_profiles?.student_id || 'Unknown';
             const studentName = fee.user_profiles
                 ? `${fee.user_profiles.first_name} ${fee.user_profiles.last_name}`
@@ -230,17 +230,17 @@ export class ReportingService {
         const { data, error } = await query;
         if (error) throw error;
 
-        return (data as any[] || []).map((section) => {
+        return (data as any[] || []).map((section) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             const enrollments = section.enrollments || [];
             const totalStudents = enrollments.length;
 
             let totalAttendanceRate = 0;
             let belowThreshold = 0;
 
-            enrollments.forEach((enrollment: any) => {
+            enrollments.forEach((enrollment: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
                 const records = enrollment.attendance_records || [];
                 const totalClasses = records.length;
-                const presentCount = records.filter((r: any) => r.status === 'PRESENT' || r.status === 'LATE').length;
+                const presentCount = records.filter((r: any) => r.status === 'PRESENT' || r.status === 'LATE').length; // eslint-disable-line @typescript-eslint/no-explicit-any
 
                 const attendanceRate = totalClasses > 0 ? (presentCount / totalClasses) * 100 : 0;
                 totalAttendanceRate += attendanceRate;
@@ -281,7 +281,7 @@ export class ReportingService {
             sectionsCount: data?.length || 0
         };
 
-        (data as any[] || []).forEach((section) => {
+        (data as any[] || []).forEach((section) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             stats.totalCapacity += section.capacity || 0;
             stats.totalEnrolled += section.enrolled_count || 0;
             stats.totalWaitlisted += section.waitlist_count || 0;

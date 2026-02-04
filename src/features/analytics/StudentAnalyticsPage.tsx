@@ -22,9 +22,9 @@ import {
 } from 'recharts';
 
 export function StudentAnalyticsPage() {
-    const [enrollmentData, setEnrollmentData] = useState<any[]>([]);
-    const [gradeDistribution, setGradeDistribution] = useState<any[]>([]);
-    const [attendanceTrends, setAttendanceTrends] = useState<any[]>([]);
+    const [enrollmentData, setEnrollmentData] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const [gradeDistribution, setGradeDistribution] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const [attendanceTrends, setAttendanceTrends] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

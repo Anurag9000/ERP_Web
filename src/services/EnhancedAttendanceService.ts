@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { supabase } from '../lib/supabase';
 
 export interface AttendanceStats {
@@ -24,7 +24,7 @@ export class EnhancedAttendanceService {
     ): Promise<{ success: boolean; marked: number; error?: string }> {
         try {
             // Get all enrollments
-            const { data: enrollments, error: enrollError } = await supabase
+            const { data: enrollments, error: enrollError } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                 .from('enrollments')
                 .select('id, student_id')
                 .eq('section_id', sectionId)
@@ -36,7 +36,7 @@ export class EnhancedAttendanceService {
 
             // Mark attendance for each student
             for (const enrollment of enrollments || []) {
-                const { error } = await supabase
+                const { error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                     .from('attendance_records')
                     .upsert({
                         section_id: sectionId,
@@ -49,7 +49,7 @@ export class EnhancedAttendanceService {
             }
 
             return { success: true, marked };
-        } catch (error: any) {
+        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             return { success: false, marked: 0, error: error.message };
         }
     }
@@ -62,7 +62,7 @@ export class EnhancedAttendanceService {
         startDate?: Date,
         endDate?: Date
     ): Promise<AttendanceStats> {
-        let query = supabase
+        let query = (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
             .from('attendance_records')
             .select(`
         status,
@@ -85,14 +85,14 @@ export class EnhancedAttendanceService {
         const { data, error } = await query;
         if (error) throw error;
 
-        const totalClasses = new Set((data || []).map((r: any) => r.attendance_date)).size;
-        const totalPresent = (data || []).filter((r: any) => r.status === 'PRESENT' || r.status === 'LATE').length;
-        const totalAbsent = (data || []).filter((r: any) => r.status === 'ABSENT').length;
+        const totalClasses = new Set((data || []).map((r: any) => r.attendance_date)).size; // eslint-disable-line @typescript-eslint/no-explicit-any
+        const totalPresent = (data || []).filter((r: any) => r.status === 'PRESENT' || r.status === 'LATE').length; // eslint-disable-line @typescript-eslint/no-explicit-any
+        const totalAbsent = (data || []).filter((r: any) => r.status === 'ABSENT').length; // eslint-disable-line @typescript-eslint/no-explicit-any
 
         // Calculate per-student attendance
         const studentAttendance = new Map<string, { present: number; total: number; name: string }>();
 
-        (data || []).forEach((record: any) => {
+        (data || []).forEach((record: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             const studentId = record.enrollments?.user_profiles?.student_id;
             const studentName = record.enrollments?.user_profiles
                 ? `${record.enrollments.user_profiles.first_name} ${record.enrollments.user_profiles.last_name}`
@@ -137,7 +137,7 @@ export class EnhancedAttendanceService {
         startDate?: Date,
         endDate?: Date
     ): Promise<string> {
-        let query = supabase
+        let query = (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
             .from('attendance_records')
             .select(`
         date,
@@ -163,7 +163,7 @@ export class EnhancedAttendanceService {
         // Build CSV
         let csv = 'Date,Student ID,Name,Status\n';
 
-        (data || []).forEach((record: any) => {
+        (data || []).forEach((record: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             const profile = record.enrollments?.user_profiles;
             const isPresent = record.status === 'PRESENT' || record.status === 'LATE';
             csv += `${record.attendance_date},${profile?.student_id},"${profile?.first_name} ${profile?.last_name}",${isPresent ? 'Present' : 'Absent'}\n`;

@@ -1,5 +1,5 @@
 
-// @ts-nocheck
+
 import { supabase } from '../lib/supabase';
 
 export interface StudentFee {
@@ -38,25 +38,25 @@ export class FinanceService {
 
     if (error) throw error;
 
-    return (data || []).map((row: any) => ({
-      ...row,
-      fee_type: row.fee_structures?.name || 'Fee',
+    return (data || []).map((row) => ({
+      ...(row as StudentFee),
+      fee_type: (row as any).fee_structures?.name || 'Fee', // eslint-disable-line @typescript-eslint/no-explicit-any
     }));
   }
 
   async recordPayment(studentId: string, feeId: string, amount: number, method: string) {
     // 1. Record Payment
     const { data: payment, error: payError } = await (supabase
-      .from('payments')
+      .from('payments') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .insert({
         student_id: studentId,
         student_fee_id: feeId,
         amount,
         payment_method: method,
         payment_date: new Date().toISOString(),
-      } as any)
+      } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select()
-      .single() as any);
+      .single() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (payError) throw payError;
 
@@ -69,14 +69,15 @@ export class FinanceService {
       .single();
 
     if (fee) {
-      const updatedAmountPaid = (fee as any).amount_paid + amount;
-      const { error: updateError } = await (supabase
-        .from('student_fees')
+      const updatedAmountPaid = (fee as any).amount_paid + amount; // eslint-disable-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase
+        .from('student_fees') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .update({
           amount_paid: updatedAmountPaid,
-          status: updatedAmountPaid >= (fee as any).amount ? 'PAID' : 'PARTIAL'
-        } as any)
-        .eq('id', feeId) as any);
+          status: updatedAmountPaid >= (fee as any).amount ? 'PAID' : 'PARTIAL' // eslint-disable-line @typescript-eslint/no-explicit-any
+        } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .eq('id', feeId) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+      if (error) throw error;
     }
 
     return payment;

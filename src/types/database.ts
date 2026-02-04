@@ -22,6 +22,7 @@ export type Database = {
           department_id: string | null;
           student_id: string | null;
           employee_id: string | null;
+          advisor_id: string | null;
           profile_image_url: string | null;
           bio: string | null;
           office_room: string | null;
@@ -33,6 +34,7 @@ export type Database = {
         };
         Insert: Omit<Database['public']['Tables']['user_profiles']['Row'], 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['user_profiles']['Insert']>;
+        Relationships: [];
       };
       departments: {
         Row: {
@@ -118,6 +120,7 @@ export type Database = {
         };
         Insert: Omit<Database['public']['Tables']['sections']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['sections']['Insert']>;
+        Relationships: [];
       };
       enrollments: {
         Row: {
@@ -135,6 +138,7 @@ export type Database = {
         };
         Insert: Omit<Database['public']['Tables']['enrollments']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['enrollments']['Insert']>;
+        Relationships: [];
       };
       waitlists: {
         Row: {
@@ -164,11 +168,13 @@ export type Database = {
           due_date: string | null;
           is_published: boolean;
           rubric: string | null;
+          google_classroom_id: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['assessments']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['assessments']['Insert']>;
+        Relationships: [];
       };
       grades: {
         Row: {
@@ -186,6 +192,7 @@ export type Database = {
         };
         Insert: Omit<Database['public']['Tables']['grades']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['grades']['Insert']>;
+        Relationships: [];
       };
       attendance_records: {
         Row: {
@@ -326,6 +333,7 @@ export type Database = {
         };
         Insert: Omit<Database['public']['Tables']['section_messages']['Row'], 'id' | 'created_at'>;
         Update: Partial<Database['public']['Tables']['section_messages']['Insert']>;
+        Relationships: [];
       };
       section_message_recipients: {
         Row: {
@@ -337,6 +345,7 @@ export type Database = {
         };
         Insert: Omit<Database['public']['Tables']['section_message_recipients']['Row'], 'id' | 'read_at'>;
         Update: Partial<Database['public']['Tables']['section_message_recipients']['Insert']>;
+        Relationships: [];
       };
       registrar_requests: {
         Row: {
@@ -398,6 +407,7 @@ export type Database = {
         };
         Insert: Omit<Database['public']['Tables']['audit_logs']['Row'], 'id' | 'created_at'>;
         Update: Partial<Database['public']['Tables']['audit_logs']['Insert']>;
+        Relationships: [];
       };
       rooms: {
         Row: {
@@ -440,6 +450,73 @@ export type Database = {
         };
         Insert: Database['public']['Tables']['course_antirequisites']['Row'];
         Update: Partial<Database['public']['Tables']['course_antirequisites']['Insert']>;
+      };
+      appointment_requests: {
+        Row: {
+          id: string;
+          student_id: string;
+          instructor_id: string;
+          requested_date: string;
+          requested_time: string;
+          purpose: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['appointment_requests']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['appointment_requests']['Insert']>;
+        Relationships: [];
+      };
+      learning_goals: {
+        Row: {
+          id: string;
+          student_id: string;
+          title: string;
+          description: string;
+          category: string;
+          target_date: string;
+          progress: number;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['learning_goals']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['learning_goals']['Insert']>;
+        Relationships: [];
+      };
+      google_classroom_mappings: {
+        Row: {
+          id: string;
+          google_course_id: string;
+          erp_course_id: string;
+          course_name: string;
+          sync_enabled: boolean;
+          last_sync: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          google_course_id: string;
+          erp_course_id: string;
+          course_name: string;
+          sync_enabled: boolean;
+          last_sync?: string | null;
+        };
+        Update: Partial<Database['public']['Tables']['google_classroom_mappings']['Insert']>;
+        Relationships: [];
+      };
+      goal_milestones: {
+        Row: {
+          id: string;
+          goal_id: string;
+          title: string;
+          completed: boolean;
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['goal_milestones']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['goal_milestones']['Insert']>;
+        Relationships: [];
       };
     };
     Functions: {

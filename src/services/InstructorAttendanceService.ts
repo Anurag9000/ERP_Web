@@ -62,7 +62,7 @@ export class InstructorAttendanceService {
       terms: { name: string } | null;
     }
 
-    const sections = data as unknown as SectionRow[];
+    const sections = data as unknown as SectionRow[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     return sections.map((section) => ({
       id: section.id,
@@ -101,7 +101,7 @@ export class InstructorAttendanceService {
       } | null;
     }
 
-    const enrollments = data as unknown as EnrollmentRow[];
+    const enrollments = data as unknown as EnrollmentRow[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     return enrollments.map((enrollment) => ({
       id: enrollment.student_id,
@@ -131,7 +131,7 @@ export class InstructorAttendanceService {
       notes: string | null;
     }
 
-    const records = data as unknown as AttendanceRow[];
+    const records = data as unknown as AttendanceRow[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     return records.map((record) => ({
       id: record.id,
@@ -161,7 +161,7 @@ export class InstructorAttendanceService {
       notes: entry.notes,
     }));
 
-    const { error } = await (supabase.from('attendance_records') as any)
+    const { error } = await (supabase.from('attendance_records') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .upsert(upsertPayload, { onConflict: 'section_id,student_id,attendance_date' });
     if (error) throw error;
   }
