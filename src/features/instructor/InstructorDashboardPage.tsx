@@ -186,16 +186,27 @@ export function InstructorDashboardPage() {
         unreadNotifications: notificationsCount.count ?? 0,
       });
 
-      // Better: Count unique assessments with ungraded submissions
-      const { count: ungradedCount } = await supabase
-        .from('grades')
-        .select('id', { count: 'exact', head: true })
-        .is('marks_obtained', null)
-        .in('assessments.section_id', sectionIds);
+      // Count ungraded submissions for instructor's sections
+      if (sectionIds.length > 0) {
+        const { data: assessments } = await supabase
+          .from('assessments')
+          .select('id')
+          .in('section_id', sectionIds);
 
-      if (ungradedCount !== null) {
-        setStats(prev => ({ ...prev, gradingDue: ungradedCount }));
+        if (assessments && assessments.length > 0) {
+          const assessmentIds = assessments.map((a: { id: string }) => a.id);
+          const { count: ungradedCount } = await supabase
+            .from('grades')
+            .select('id', { count: 'exact', head: true })
+            .is('marks_obtained', null)
+            .in('assessment_id', assessmentIds);
+
+          if (ungradedCount !== null) {
+            setStats(prev => ({ ...prev, gradingDue: ungradedCount }));
+          }
+        }
       }
+
       await loadAnalytics(resolvedSections.map((section) => section.id));
     } catch (error) {
       console.error('Error loading instructor dashboard:', error);

@@ -1,6 +1,58 @@
 
 import { supabase } from '../lib/supabase';
 
+// Database query result types
+interface SectionRow {
+  id: string;
+  courses: { code: string; name: string } | null;
+  terms: { name: string } | null;
+}
+
+interface EnrollmentRow {
+  student_id: string;
+  user_profiles: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  } | null;
+}
+
+interface MessageRow {
+  id: string;
+  title: string;
+  body: string;
+  delivery_scope: 'SECTION' | 'STUDENT';
+  delivery_channel: 'IN_APP' | 'EMAIL' | 'SMS';
+  created_at: string;
+  section_message_recipients: RecipientRow[];
+}
+
+interface RecipientRow {
+  id: string;
+  student_id: string;
+  status: string;
+  read_at: string | null;
+  user_profiles: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  } | null;
+}
+
+interface MessageInsert {
+  section_id: string;
+  instructor_id: string;
+  title: string;
+  body: string;
+  delivery_scope: 'SECTION' | 'STUDENT';
+  delivery_channel: 'IN_APP' | 'EMAIL' | 'SMS';
+}
+
+interface RecipientInsert {
+  message_id: string;
+  student_id: string;
+}
+
 export interface MessagingSection {
   id: string;
   courseCode: string;
@@ -41,7 +93,7 @@ export interface CreateMessagePayload {
 
 export class InstructorMessagingService {
   async fetchSections(instructorId: string): Promise<MessagingSection[]> {
-    const { data, error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    const { data, error } = await supabase
       .from('sections')
       .select(
         `
@@ -56,7 +108,7 @@ export class InstructorMessagingService {
 
     if (error) throw error;
 
-    return (data || []).map((section: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+    return ((data as unknown as SectionRow[]) || []).map((section) => ({
       id: section.id,
       courseCode: section.courses?.code || '',
       courseName: section.courses?.name || '',
@@ -65,7 +117,7 @@ export class InstructorMessagingService {
   }
 
   async fetchStudents(sectionId: string): Promise<MessagingStudent[]> {
-    const { data, error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    const { data, error } = await supabase
       .from('enrollments')
       .select(
         `
@@ -78,7 +130,7 @@ export class InstructorMessagingService {
       .order('user_profiles(last_name)');
     if (error) throw error;
 
-    return (data || []).map((row: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+    return ((data as unknown as EnrollmentRow[]) || []).map((row) => ({
       id: row.student_id,
       fullName: `${row.user_profiles?.first_name || ''} ${row.user_profiles?.last_name || ''}`.trim(),
       email: row.user_profiles?.email || '',
@@ -86,7 +138,7 @@ export class InstructorMessagingService {
   }
 
   async fetchMessages(sectionId: string): Promise<SectionMessage[]> {
-    const { data, error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    const { data, error } = await supabase
       .from('section_messages')
       .select(
         `
@@ -110,14 +162,14 @@ export class InstructorMessagingService {
       .limit(25);
     if (error) throw error;
 
-    return (data || []).map((message: any) => ({
+    return ((data as unknown as MessageRow[]) || []).map((message) => ({
       id: message.id,
       title: message.title,
       body: message.body,
       deliveryScope: message.delivery_scope,
       deliveryChannel: message.delivery_channel,
       createdAt: message.created_at,
-      recipients: (message.section_message_recipients || []).map((recipient: any) => ({
+      recipients: (message.section_message_recipients || []).map((recipient) => ({
         id: recipient.id,
         studentId: recipient.student_id,
         status: recipient.status,
@@ -132,28 +184,31 @@ export class InstructorMessagingService {
   }
 
   async sendMessage(instructorId: string, payload: CreateMessagePayload) {
-    const { data, error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    const messageInsert: MessageInsert = {
+      section_id: payload.sectionId,
+      instructor_id: instructorId,
+      title: payload.title,
+      body: payload.body,
+      delivery_scope: payload.deliveryScope,
+      delivery_channel: payload.deliveryChannel,
+    };
+
+    const { data, error } = await supabase
       .from('section_messages')
-      .insert({
-        section_id: payload.sectionId,
-        instructor_id: instructorId,
-        title: payload.title,
-        body: payload.body,
-        delivery_scope: payload.deliveryScope,
-        delivery_channel: payload.deliveryChannel,
-      } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .insert(messageInsert as never)
       .select('id')
       .single();
     if (error) throw error;
 
-    if (payload.recipientIds.length) {
-      const { error: recipientError } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .from('section_message_recipients').insert(
-          payload.recipientIds.map((studentId) => ({
-            message_id: data.id,
-            student_id: studentId,
-          }))
-        );
+    if (payload.recipientIds.length && data) {
+      const recipientInserts: RecipientInsert[] = payload.recipientIds.map((studentId) => ({
+        message_id: (data as { id: string }).id,
+        student_id: studentId,
+      }));
+
+      const { error: recipientError } = await supabase
+        .from('section_message_recipients')
+        .insert(recipientInserts as never[]);
       if (recipientError) throw recipientError;
     }
   }

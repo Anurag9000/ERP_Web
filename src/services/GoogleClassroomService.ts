@@ -154,18 +154,14 @@ export class GoogleClassroomService {
     /**
      * Push grades to Google Classroom
      */
-    async pushGrades(
+    async pushGradesToClassroom(
         googleCourseId: string,
         assignmentId: string,
         studentGrades: Array<{ studentId: string; grade: number }>
-    ): Promise<{ success: boolean; error?: string }> {
-        try {
-            // In production, this would use Google Classroom API to submit grades
-            console.log('Pushing grades to Google Classroom:', { googleCourseId, assignmentId, studentGrades });
-            return { success: true };
-        } catch (error: any) {
-            return { success: false, error: error.message };
-        }
+    ): Promise<void> {
+        // In a real implementation, this would push grades to Google Classroom
+        // For now, we'll simulate the operation
+        return Promise.resolve();
     }
 
     /**

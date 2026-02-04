@@ -131,6 +131,19 @@ export class ReportingService {
             const available = (section.capacity || 0) - (section.enrolled_count || 0);
             const waitlisted = section.waitlist_count || 0;
 
+            // Calculate pressure score with safe division
+            // If no available spots, pressure is infinite (represented as waitlisted * 1000)
+            // If available spots exist, pressure is waitlisted/available ratio
+            let pressureScore: number;
+            if (available > 0) {
+                pressureScore = waitlisted / available;
+            } else if (waitlisted > 0) {
+                // High pressure when waitlist exists but no spots available
+                pressureScore = waitlisted * 1000;
+            } else {
+                pressureScore = 0;
+            }
+
             return {
                 courseCode: section.courses?.code || '',
                 courseName: section.courses?.name || '',
@@ -138,7 +151,7 @@ export class ReportingService {
                 capacity: section.capacity || 0,
                 enrolled: section.enrolled_count || 0,
                 waitlisted,
-                pressureScore: available > 0 ? waitlisted / available : waitlisted
+                pressureScore
             };
         }).sort((a, b) => b.pressureScore - a.pressureScore);
     }

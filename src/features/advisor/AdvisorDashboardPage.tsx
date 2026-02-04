@@ -12,21 +12,30 @@ import {
 export function AdvisorDashboardPage() {
     const { user } = useAuth();
     const [riskStudents, setRiskStudents] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const [totalAdvisees, setTotalAdvisees] = useState(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (user) {
-            loadRiskStudents();
+            loadAdviseeData();
         }
     }, [user]);
 
-    async function loadRiskStudents() {
+    async function loadAdviseeData() {
         setLoading(true);
         try {
-            const data = await services.degreeAuditService.identifyRiskStudents(user!.id);
-            setRiskStudents(data);
+            // Get all advisees for this advisor
+            const allAdvisees = await services.degreeAuditService.identifyRiskStudents(user!.id);
+
+            // Separate at-risk students (those with actual risk factors)
+            const atRiskStudents = allAdvisees.filter(student =>
+                student.riskFactors && student.riskFactors.length > 0
+            );
+
+            setTotalAdvisees(allAdvisees.length);
+            setRiskStudents(atRiskStudents);
         } catch (error) {
-            console.error('Error loading risk students:', error);
+            console.error('Error loading advisee data:', error);
         } finally {
             setLoading(false);
         }
@@ -50,7 +59,7 @@ export function AdvisorDashboardPage() {
                         <div>
                             <p className="text-sm text-gray-600">Total Advisees</p>
                             <p className="text-2xl font-bold text-gray-900 mt-1">
-                                {riskStudents.length}
+                                {totalAdvisees}
                             </p>
                         </div>
                         <Users className="w-8 h-8 text-blue-600" />
@@ -74,8 +83,8 @@ export function AdvisorDashboardPage() {
                         <div>
                             <p className="text-sm text-gray-600">Avg CGPA</p>
                             <p className="text-2xl font-bold text-gray-900 mt-1">
-                                {riskStudents.length > 0
-                                    ? (riskStudents.reduce((sum, s) => sum + s.cgpa, 0) / riskStudents.length).toFixed(2)
+                                {totalAdvisees > 0 && riskStudents.length > 0
+                                    ? (riskStudents.reduce((sum, s) => sum + (s.cgpa || 0), 0) / riskStudents.length).toFixed(2)
                                     : 'N/A'}
                             </p>
                         </div>
