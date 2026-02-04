@@ -140,8 +140,8 @@ export class EnhancedAttendanceService {
         let query = (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
             .from('attendance_records')
             .select(`
-        date,
-        present,
+        attendance_date,
+        status,
         enrollments!inner (
           section_id,
           user_profiles (student_id, first_name, last_name)

@@ -58,8 +58,8 @@ export class CalendarService {
                 start_time: section.start_time,
                 end_time: section.end_time,
                 schedule_days: section.schedule_days,
-                course_code: section.courses.code,
-                course_name: section.courses.name,
+                course_code: section.courses?.code || '',
+                course_name: section.courses?.name || '',
                 room: section.rooms?.code,
                 instructor: section.user_profiles
                     ? `${section.user_profiles.first_name} ${section.user_profiles.last_name}`
