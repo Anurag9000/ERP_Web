@@ -29,6 +29,18 @@ export class ExaminationService {
      */
     async submitExamForm(studentId: string, termId: string): Promise<{ success: boolean; error?: string }> {
         try {
+            // Check if form already exists
+            const { data: existing } = await supabase
+                .from('exam_forms')
+                .select('id')
+                .eq('student_id', studentId)
+                .eq('term_id', termId)
+                .maybeSingle();
+
+            if (existing) {
+                return { success: false, error: 'Exam form already submitted for this term' };
+            }
+
             const { error: formError } = await (supabase
                 .from('exam_forms') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                 .insert({
@@ -58,6 +70,10 @@ export class ExaminationService {
                 .single();
 
             if (studentError) throw studentError;
+            if (!student) {
+                console.error('Student not found');
+                return null;
+            }
 
             // Get enrolled courses with exam schedules
             const { data: enrollments, error: enrollError } = await (supabase
@@ -93,13 +109,19 @@ export class ExaminationService {
                 });
             });
 
+            // Validate that student has exams scheduled
+            if (courses.length === 0) {
+                console.error('No exams scheduled for student');
+                return null;
+            }
+
             return {
                 examId: termId,
                 studentId: student.student_id,
                 studentName: `${student.first_name} ${student.last_name}`,
                 rollNumber: student.student_id,
-                examCenter: 'Main Campus - Hall A',
-                examDate: courses[0]?.date || new Date(),
+                examCenter: 'Main Campus - Hall A', // TODO: Fetch from configuration
+                examDate: courses[0].date,
                 courses: courses.sort((a, b) => a.date.getTime() - b.date.getTime())
             };
         } catch (error) {
@@ -168,7 +190,7 @@ export class ExaminationService {
             credits: enrollment.sections?.courses?.credits || 0,
             grade: enrollment.grade || 'N/A',
             marks: (enrollment.grades as any[])?.reduce((sum: number, g: any) => sum + (g.marks_obtained || 0), 0) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
-            maxMarks: (enrollment.grades as any[])?.reduce((sum: number, g: any) => sum + (g.assessments?.max_marks || 0), 0) || 100 // eslint-disable-line @typescript-eslint/no-explicit-any
+            maxMarks: (enrollment.grades as any[])?.reduce((sum: number, g: any) => sum + (g.assessments?.max_marks || 0), 0) || 0 // eslint-disable-line @typescript-eslint/no-explicit-any
         }));
     }
 

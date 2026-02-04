@@ -163,7 +163,8 @@ export class ImportExportService {
         let imported = 0;
         const errors: string[] = [];
 
-        for (const row of data) {
+        for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+            const row = data[rowIndex];
             try {
                 // First create auth user
                 const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
@@ -173,12 +174,12 @@ export class ImportExportService {
                 });
 
                 if (authError) {
-                    errors.push(`Row ${data.indexOf(row) + 2}: ${authError.message}`);
+                    errors.push(`Row ${rowIndex + 2}: ${authError.message}`);
                     continue;
                 }
 
                 if (!authUser.user) {
-                    errors.push(`Row ${data.indexOf(row) + 2}: User creation failed without error message`);
+                    errors.push(`Row ${rowIndex + 2}: User creation failed without error message`);
                     continue;
                 }
 
@@ -194,21 +195,23 @@ export class ImportExportService {
                         student_id: row.student_id,
                         phone: row.phone || null,
                         is_active: true,
-                        // Fix: must_change_password is required in DB types but validation might fail if omitted?
-                        // Assuming default false in DB but type requires it?
                         must_change_password: true
                     });
 
                 if (profileError) {
-                    errors.push(`Row ${data.indexOf(row) + 2}: ${profileError.message}`);
+                    errors.push(`Row ${rowIndex + 2}: ${profileError.message}`);
                     // Cleanup: delete auth user
-                    await supabase.auth.admin.deleteUser(authUser.user.id);
+                    try {
+                        await supabase.auth.admin.deleteUser(authUser.user.id);
+                    } catch (cleanupError) {
+                        console.error('Failed to cleanup auth user:', cleanupError);
+                    }
                     continue;
                 }
 
                 imported++;
             } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-                errors.push(`Row ${data.indexOf(row) + 2}: ${error.message}`);
+                errors.push(`Row ${rowIndex + 2}: ${error.message}`);
             }
         }
 
@@ -227,7 +230,8 @@ export class ImportExportService {
         let imported = 0;
         const errors: string[] = [];
 
-        for (const row of data) {
+        for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+            const row = data[rowIndex];
             try {
                 // Get department ID if provided
                 let departmentId: string | null = null;
@@ -247,14 +251,14 @@ export class ImportExportService {
                 // So if departmentId is null, insert will fail.
                 // We should validate department exists.
                 if (row.department_code && !departmentId) {
-                    errors.push(`Row ${data.indexOf(row) + 2}: Department ${row.department_code} not found`);
+                    errors.push(`Row ${rowIndex + 2}: Department ${row.department_code} not found`);
                     continue;
                 }
                 // If no department code, is it allowed? DB says required.
                 if (!departmentId) {
                     // Try to find a default or error out?
                     // For now, let's error if required.
-                    errors.push(`Row ${data.indexOf(row) + 2}: Department is required`);
+                    errors.push(`Row ${rowIndex + 2}: Department is required`);
                     continue;
                 }
 
@@ -271,13 +275,13 @@ export class ImportExportService {
                     });
 
                 if (error) {
-                    errors.push(`Row ${data.indexOf(row) + 2}: ${error.message}`);
+                    errors.push(`Row ${rowIndex + 2}: ${error.message}`);
                     continue;
                 }
 
                 imported++;
             } catch (error: any) {
-                errors.push(`Row ${data.indexOf(row) + 2}: ${error.message}`);
+                errors.push(`Row ${rowIndex + 2}: ${error.message}`);
             }
         }
 
@@ -296,7 +300,8 @@ export class ImportExportService {
         let imported = 0;
         const errors: string[] = [];
 
-        for (const row of data) {
+        for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+            const row = data[rowIndex];
             try {
                 // Find student record
                 const { data: student } = await (supabase
@@ -306,7 +311,7 @@ export class ImportExportService {
                     .single();
 
                 if (!student) {
-                    errors.push(`Row ${data.indexOf(row) + 2}: Student ${row.student_id} not found`);
+                    errors.push(`Row ${rowIndex + 2}: Student ${row.student_id} not found`);
                     continue;
                 }
 
@@ -319,7 +324,7 @@ export class ImportExportService {
                     .single();
 
                 if (!section) {
-                    errors.push(`Row ${data.indexOf(row) + 2}: Section ${row.course_code}-${row.section_number} not found`);
+                    errors.push(`Row ${rowIndex + 2}: Section ${row.course_code}-${row.section_number} not found`);
                     continue;
                 }
 
@@ -329,6 +334,16 @@ export class ImportExportService {
                 const sectionIdVal = (section as any).id;
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const termIdVal = (section as any).term_id;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const enrolledCount = (section as any).enrolled_count || 0;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const capacity = (section as any).capacity || 0;
+
+                // Check capacity
+                if (enrolledCount >= capacity) {
+                    errors.push(`Row ${rowIndex + 2}: Section ${row.course_code}-${row.section_number} is at full capacity`);
+                    continue;
+                }
 
                 const { error } = await (supabase
                     .from('enrollments') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -342,13 +357,18 @@ export class ImportExportService {
                     });
 
                 if (error) {
-                    errors.push(`Row ${data.indexOf(row) + 2}: ${error.message}`);
+                    errors.push(`Row ${rowIndex + 2}: ${error.message}`);
                     continue;
                 }
 
+                // CRITICAL: Update enrolled_count
+                await (supabase.from('sections') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+                    .update({ enrolled_count: enrolledCount + 1 })
+                    .eq('id', sectionIdVal);
+
                 imported++;
-            } catch (error: any) {
-                errors.push(`Row ${data.indexOf(row) + 2}: ${error.message}`);
+            } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+                errors.push(`Row ${rowIndex + 2}: ${error.message}`);
             }
         }
 
