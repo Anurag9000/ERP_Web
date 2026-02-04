@@ -22,22 +22,22 @@ export function BulkImportPage() {
 
         setFile(selectedFile);
         setResult(null);
-        parseAndValidate(selectedFile);
+        parseAndValidate(selectedFile, importType);
     }
 
-    async function parseAndValidate(file: File) {
+    async function parseAndValidate(file: File, type: ImportType) {
         try {
             const { data, errors: parseErrors } = await services.importExportService.parseCSV(file);
 
             setPreview(data.slice(0, 10)); // Show first 10 rows
 
-            // Validate based on type
+            // Validate based on type (use parameter, not state)
             let validationErrors: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
-            if (importType === 'students') {
+            if (type === 'students') {
                 validationErrors = services.importExportService.validateStudentData(data);
-            } else if (importType === 'courses') {
+            } else if (type === 'courses') {
                 validationErrors = services.importExportService.validateCourseData(data);
-            } else if (importType === 'enrollments') {
+            } else if (type === 'enrollments') {
                 validationErrors = services.importExportService.validateEnrollmentData(data);
             }
 
@@ -317,7 +317,7 @@ export function BulkImportPage() {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    {Object.keys(preview[0]).map((key) => (
+                                    {preview.length > 0 && Object.keys(preview[0]).map((key) => (
                                         <th
                                             key={key}
                                             className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"

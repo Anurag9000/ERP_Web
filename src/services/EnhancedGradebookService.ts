@@ -29,6 +29,14 @@ export class EnhancedGradebookService {
         dueDate: Date
     ): Promise<{ success: boolean; assessmentId?: string; error?: string }> {
         try {
+            // Validate maxMarks
+            if (!maxMarks || maxMarks <= 0 || isNaN(maxMarks)) {
+                return {
+                    success: false,
+                    error: 'Maximum marks must be a positive number greater than zero'
+                };
+            }
+
             const { data, error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                 .from('assessments')
                 .insert({
@@ -53,9 +61,10 @@ export class EnhancedGradebookService {
      */
     async bulkUpdateGrades(
         grades: Array<{ enrollmentId: string; assessmentId: string; marksObtained: number }>
-    ): Promise<{ success: boolean; updated: number; error?: string }> {
+    ): Promise<{ success: boolean; updated: number; error?: string; errors?: string[] }> {
         try {
             let updated = 0;
+            const errors: string[] = [];
 
             for (const grade of grades) {
                 const { error } = await (supabase as any) // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -67,10 +76,24 @@ export class EnhancedGradebookService {
                         submitted_at: new Date().toISOString()
                     });
 
-                if (!error) updated++;
+                if (error) {
+                    errors.push(`Enrollment ${grade.enrollmentId}: ${error.message}`);
+                } else {
+                    updated++;
+                }
             }
 
-            return { success: true, updated };
+            // Return success only if all grades updated successfully
+            if (errors.length === 0) {
+                return { success: true, updated };
+            } else {
+                return {
+                    success: false,
+                    updated,
+                    error: `${errors.length} grade(s) failed to update`,
+                    errors
+                };
+            }
         } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             return { success: false, updated: 0, error: error.message };
         }
@@ -104,9 +127,13 @@ export class EnhancedGradebookService {
                 let totalMarks = 0;
                 let totalMaxMarks = 0;
 
+                // Only count grades where assessment has valid max_marks
                 grades.forEach((g: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-                    totalMarks += g.marks_obtained || 0;
-                    totalMaxMarks += g.assessments?.max_marks || 0;
+                    const maxMarks = g.assessments?.max_marks;
+                    if (maxMarks && maxMarks > 0) {
+                        totalMarks += g.marks_obtained || 0;
+                        totalMaxMarks += maxMarks;
+                    }
                 });
 
                 const percentage = totalMaxMarks > 0 ? (totalMarks / totalMaxMarks) * 100 : 0;

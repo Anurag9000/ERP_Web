@@ -528,20 +528,37 @@ export class EnrollmentService {
         continue;
       }
 
+      // Update waitlist status to PROMOTED
       await (supabase.from('waitlists') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .update({ status: 'PROMOTED', promoted_at: new Date().toISOString() })
         .eq('id', candidate.id);
+
+      // CRITICAL: Increment enrolled_count immediately
+      await (supabase.from('sections') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .update({ enrolled_count: typedSection.enrolled_count + promotedCount + 1 })
+        .eq('id', sectionId);
 
       promotedCount++;
       await this.audit.enrollment(candidate.student_id, sectionId, 'PROMOTED');
     }
 
+    // Update final waitlist count (enrolled_count already updated per promotion)
     if (promotedCount > 0) {
-      await (supabase.from('sections') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .update({
-          waitlist_count: Math.max((typedSection.waitlist_count || 0) - promotedCount, 0),
-        })
-        .eq('id', sectionId);
+      // Decrement waitlist count by number promoted
+      const { data: currentSection } = await supabase
+        .from('sections')
+        .select('waitlist_count')
+        .eq('id', sectionId)
+        .single();
+
+      const typedCurrentSection = currentSection as { waitlist_count: number } | null;
+      if (typedCurrentSection) {
+        await (supabase.from('sections') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+          .update({
+            waitlist_count: Math.max((typedCurrentSection.waitlist_count || 0) - promotedCount, 0),
+          })
+          .eq('id', sectionId);
+      }
     }
   }
 
@@ -566,22 +583,30 @@ export class EnrollmentService {
 
   private hasConflict(section: SectionSchedule, currentSections: SectionSchedule[]) {
     return currentSections.some((current) => {
+      // Check if classes are on the same day
       const overlappingDay = current.schedule_days.some((day) => section.schedule_days.includes(day));
       if (!overlappingDay) return false;
-      const overlaps =
+
+      // Check if times overlap
+      const timeOverlap =
         this.timeToMinutes(section.start_time) < this.timeToMinutes(current.end_time) &&
         this.timeToMinutes(section.end_time) > this.timeToMinutes(current.start_time);
-      const roomClash =
-        section.rooms?.code &&
-        current.rooms?.code &&
-        section.rooms.code === current.rooms.code &&
-        overlaps;
-      return overlaps || roomClash;
+
+      return timeOverlap;
     });
   }
 
   private timeToMinutes(time: string) {
-    const [h, m] = time.split(':').map(Number);
+    if (!time || typeof time !== 'string') return 0;
+
+    const parts = time.split(':');
+    if (parts.length !== 2) return 0;
+
+    const [h, m] = parts.map(Number);
+
+    if (isNaN(h) || isNaN(m)) return 0;
+    if (h < 0 || h > 23 || m < 0 || m > 59) return 0;
+
     return h * 60 + m;
   }
 

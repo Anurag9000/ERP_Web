@@ -69,17 +69,26 @@ export function GoogleClassroomIntegrationPage() {
         }
 
         setSyncing(true);
-        const googleCourse = googleCourses.find(c => c.id === googleCourseId);
+        try {
+            const googleCourse = googleCourses.find(c => c.id === googleCourseId);
 
-        if (googleCourse) {
+            if (!googleCourse) {
+                alert('Google Classroom course not found. Please refresh and try again.');
+                return;
+            }
+
             const result = await services.googleClassroomService.syncCourseToERP(googleCourse, erpCourseId);
             if (result.success) {
                 alert('Course mapped and synced successfully!');
             } else {
-                alert(`Sync failed: ${result.error}`);
+                alert(`Sync failed: ${result.error || 'Unknown error'}`);
             }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+            alert(`Sync failed: ${errorMessage}`);
+        } finally {
+            setSyncing(false);
         }
-        setSyncing(false);
     }
 
     async function handleImportAssignments(googleCourseId: string, erpSectionId: string) {

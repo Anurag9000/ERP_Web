@@ -97,6 +97,7 @@ export class StudentAttendanceService {
         const records = await this.getStudentAttendance(studentId);
         const courseRecord = records.find(r => r.courseCode === courseId);
 
+        // Handle case when course not found
         if (!courseRecord) {
             return {
                 attendancePercentage: 0,
