@@ -242,7 +242,16 @@ export class SectionPlannerService {
    * Helper: Convert time string to minutes
    */
   private timeToMinutes(time: string): number {
-    const [hours, minutes] = time.split(':').map(Number);
+    if (!time || typeof time !== 'string') return 0;
+
+    const parts = time.split(':');
+    if (parts.length !== 2) return 0;
+
+    const [hours, minutes] = parts.map(Number);
+
+    if (isNaN(hours) || isNaN(minutes)) return 0;
+    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return 0;
+
     return hours * 60 + minutes;
   }
 

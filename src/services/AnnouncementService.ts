@@ -103,6 +103,9 @@ export class AnnouncementService {
                 .single() as any);
 
             if (fetchError) throw fetchError;
+            if (!announcement) {
+                return { success: false, error: 'Announcement not found' };
+            }
 
             // Create calendar event
             const { error: insertError } = await (supabase

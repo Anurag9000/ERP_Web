@@ -69,7 +69,8 @@ export class FinanceService {
       .single();
 
     if (fee) {
-      const updatedAmountPaid = (fee as any).amount_paid + amount; // eslint-disable-line @typescript-eslint/no-explicit-any
+      const currentPaid = (fee as any).amount_paid || 0;
+      const updatedAmountPaid = currentPaid + amount;
       const { error } = await (supabase
         .from('student_fees') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .update({
