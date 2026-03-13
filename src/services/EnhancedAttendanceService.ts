@@ -186,7 +186,7 @@ export class EnhancedAttendanceService {
                 success: true,
                 alertsSent: stats.lowAttendanceStudents.length
             };
-        } catch (error) {
+        } catch (_error) {
             return { success: false, alertsSent: 0 };
         }
     }

@@ -18,12 +18,12 @@ describe('ExaminationService', () => {
 
     describe('submitExamForm', () => {
         it('should submit exam form successfully', async () => {
-            const mockChain = {
-                insert: vi.fn().mockReturnThis(),
+            (supabase.from as any).mockImplementation(() => ({
                 select: vi.fn().mockReturnThis(),
-                single: vi.fn().mockResolvedValue({ data: { id: 'f1' }, error: null })
-            };
-            (supabase.from as any).mockReturnValue(mockChain);
+                eq: vi.fn().mockReturnThis(),
+                maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+                insert: vi.fn().mockResolvedValue({ error: null })
+            }));
 
             const result = await service.submitExamForm('st1', 't1');
             expect(result.success).toBe(true);

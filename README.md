@@ -117,7 +117,7 @@ This system provides comprehensive academic management capabilities for students
    ```
 
 6. **Access the application**
-   - Open http://localhost:5173 in your browser
+   - Open the local URL shown by Vite in your browser
    - Use the test credentials provided by your administrator
 
 ### Building for Production

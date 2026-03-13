@@ -19,13 +19,13 @@ async function main() {
 
   console.log('Running Supabase health check...');
 
-  const { data: version, error: versionError } = await client.from('system_settings').select('key').limit(1);
+  const { error: versionError } = await client.from('system_settings').select('key').limit(1);
   if (versionError) {
     exitWith(`Database ping failed: ${versionError.message}`);
   }
   console.log('✓ Database reachable');
 
-  const { data: term, error: termError } = await client.from('terms').select('id').limit(1);
+  const { error: termError } = await client.from('terms').select('id').limit(1);
   if (termError) {
     exitWith(`Config validation failed: ${termError.message}`);
   }

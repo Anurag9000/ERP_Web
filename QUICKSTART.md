@@ -75,7 +75,7 @@ VALUES (
 npm run dev
 ```
 
-Open http://localhost:5173
+Open the local URL printed by Vite after `npm run dev`
 
 ### 6. Login
 

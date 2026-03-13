@@ -40,8 +40,8 @@ export class GoogleClassroomService {
             // In production, this would use Google OAuth 2.0
             // For now, return mock success
             return { success: true };
-        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-            return { success: false, error: error.message };
+        } catch (error: unknown) {
+            return { success: false, error: error instanceof Error ? error.message : 'Authentication failed' };
         }
     }
 
@@ -113,8 +113,8 @@ export class GoogleClassroomService {
 
             if (error) throw error;
             return { success: true };
-        } catch (error: any) {
-            return { success: false, error: error.message };
+        } catch (error: unknown) {
+            return { success: false, error: error instanceof Error ? error.message : 'Course sync failed' };
         }
     }
 
@@ -146,8 +146,8 @@ export class GoogleClassroomService {
             }
 
             return { success: true, imported };
-        } catch (error: any) {
-            return { success: false, imported: 0, error: error.message };
+        } catch (error: unknown) {
+            return { success: false, imported: 0, error: error instanceof Error ? error.message : 'Assignment import failed' };
         }
     }
 
@@ -155,9 +155,9 @@ export class GoogleClassroomService {
      * Push grades to Google Classroom
      */
     async pushGradesToClassroom(
-        googleCourseId: string,
-        assignmentId: string,
-        studentGrades: Array<{ studentId: string; grade: number }>
+        _googleCourseId: string,
+        _assignmentId: string,
+        _studentGrades: Array<{ studentId: string; grade: number }>
     ): Promise<void> {
         // In a real implementation, this would push grades to Google Classroom
         // For now, we'll simulate the operation

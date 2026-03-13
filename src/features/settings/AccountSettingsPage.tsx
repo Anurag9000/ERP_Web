@@ -35,7 +35,7 @@ export function AccountSettingsPage() {
         setNewPassword('');
         setConfirmPassword('');
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({ type: 'error', text: 'Unable to update password right now.' });
     } finally {
       setLoading(false);
